@@ -1,7 +1,7 @@
 from tkinter import *
 import os
 
-class Button:
+class Home_Button:
     """ x_pos, y_pos, width, height, text, color, canvas
     """
 
