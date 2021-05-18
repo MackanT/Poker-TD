@@ -5,29 +5,94 @@ class Tile:
     """ x_pos, y_pos, width, height, text, color, canvas
     """
 
-    def __init__(self, canvas, x=0, y=0, w=10, col=None):
+    def __init__(self, canvas, x=0, y=0, w=10):
         self.canvas = canvas
 
         self.x = x
         self.y = y
         self.w = w
         self.path = False
-        if col != None: self.col = col
-        else: self.col = 'white'
+        
+        # Tower Variables
+        self.remove_tower(update=False)
 
-        self.tile = self.canvas.create_rectangle(self.x*self.w, self.y*self.w, (self.x+1)*self.w, (self.y+1)*self.w, fill=self.col)
-        self.select = self.canvas.create_rectangle(self.x*self.w, self.y*self.w, (self.x+1)*self.w, (self.y+1)*self.w, fill='red', outline='', stipple='gray50', state='hidden')
+        self.img_selected = self.load_image('tile_selected')
+        self.img_tile = self.load_image('plank')
 
-    def set_path(self, color='red'):
-        self.col = color
+        self.tile = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_tile, anchor=NW)
+        self.tower = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_tower, anchor=NW)
+        self.select = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_selected, anchor=NW, state='hidden')
+    
+    def load_image(self, name):
+        image_file = os.getcwd() + '\\art\\tower\\tile\\' + name + '.png' 
+        return PhotoImage(file=image_file)
+
+    def set_path(self):
+        self.image_name = 'path'
+        self.name = 'Path'
+        self.value = ''
+        self.attack = ''
+        self.range = ''
+        self.speed = ''
         self.path = True
-        self.canvas.itemconfig(self.tile, fill=self.col, outline='')
+        self.buildable = False
+        self.img_tile = self.load_image(self.image_name)
+        self.canvas.itemconfig(self.tile, image=self.img_tile)
+
+    def set_tower(self, image=None, name=None, value=None, attack=None, range=None, speed=None):
+        self.image_name = image
+        self.img_tower = self.load_image(self.image_name)
+        self.canvas.itemconfig(self.tower, image=self.img_tower)
+        self.name = name
+        self.value = value
+        self.attack = attack
+        self.range = range
+        self.speed = speed
+        self.buildable = False
+
+    def remove_tower(self, update=True):
+        self.image_name = 'plank'
+        self.img_tower = self.load_image('blank')
+        if update: self.canvas.itemconfig(self.tower, image=self.img_tower)
+        self.name = 'Empty Table'
+        self.value = ''
+        self.attack = 0
+        self.range = 0
+        self.speed = 0
+        self.buildable = True
+
+    def get_buildable(self):
+        return self.buildable
 
     def get_path(self):
         return self.path
+
+    def get_x(self):
+        return self.x
+
+    def get_y(self):
+        return self.y
+    
+    def get_w(self):
+        return self.w
+
+    def get_image(self):
+        return self.image_name
+
+    def get_name(self):
+        return self.name
+
+    def get_value(self):
+        return self.value
+
+    def get_stats(self):
+        return [self.attack, self.range, self.speed]
 
     def highlight_tile(self, state):
         if state: 
             self.canvas.itemconfig(self.select, state='normal')
         else:
             self.canvas.itemconfig(self.select, state='hidden')
+
+    def set_border(self):
+        print('Add a selectable border around shape!')
