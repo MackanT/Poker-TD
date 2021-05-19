@@ -18,9 +18,11 @@ class Tile:
 
         self.img_selected = self.load_image('tile_selected')
         self.img_tile = self.load_image('plank')
+        self.img_suite_marker = self.load_image('blank')
 
         self.tile = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_tile, anchor=NW)
         self.tower = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_tower, anchor=NW)
+        self.suite_marker = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_suite_marker, anchor=NW)
         self.select = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_selected, anchor=NW, state='hidden')
     
     def load_image(self, name):
@@ -39,10 +41,13 @@ class Tile:
         self.img_tile = self.load_image(self.image_name)
         self.canvas.itemconfig(self.tile, image=self.img_tile)
 
-    def set_tower(self, image=None, name=None, value=None, attack=None, range=None, speed=None):
-        self.image_name = image
+    def set_tower(self, image=None, suite=None, name=None, value=None, attack=None, range=None, speed=None):
+        self.image_name = 'temporary'
         self.img_tower = self.load_image(self.image_name)
         self.canvas.itemconfig(self.tower, image=self.img_tower)
+        self.suite = suite
+        self.img_suite_marker = self.load_image(self.suite + '_marker')
+        self.canvas.itemconfig(self.suite_marker, image=self.img_suite_marker)
         self.name = name
         self.value = value
         self.attack = attack
@@ -56,6 +61,7 @@ class Tile:
         if update: self.canvas.itemconfig(self.tower, image=self.img_tower)
         self.name = 'Empty Table'
         self.value = ''
+        self.suite = ''
         self.attack = 0
         self.range = 0
         self.speed = 0
