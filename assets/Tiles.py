@@ -12,12 +12,14 @@ class Tile:
         self.y = y
         self.w = w
         self.path = False
+
+        self.tile_color = 'green'
         
         # Tower Variables
         self.remove_tower(update=False)
 
         self.img_selected = self.load_image('selector')
-        self.img_tile = self.load_image('tile_felt')
+        self.img_tile = self.load_image('tile_felt_' + self.tile_color)
         self.img_suite_marker = self.load_image('blank')
 
         self.tile = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_tile, anchor=NW)
@@ -30,8 +32,8 @@ class Tile:
         return PhotoImage(file=image_file)
 
     def set_path(self):
-        self.image_name = 'path'
-        self.name = 'Path'
+        self.image_name = 'tile_felt_white'
+        self.name = 'Felt Path'
         self.value = ''
         self.attack = ''
         self.range = ''
@@ -56,7 +58,7 @@ class Tile:
         self.buildable = False
 
     def remove_tower(self, update=True):
-        self.image_name = 'tile_felt'
+        self.image_name = 'tile_felt_green'
         self.img_tower = self.load_image('blank')
         if update: self.canvas.itemconfig(self.tower, image=self.img_tower)
         self.name = 'Felt Carpet'
