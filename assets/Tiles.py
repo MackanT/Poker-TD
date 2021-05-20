@@ -16,8 +16,8 @@ class Tile:
         # Tower Variables
         self.remove_tower(update=False)
 
-        self.img_selected = self.load_image('tile_selected')
-        self.img_tile = self.load_image('plank')
+        self.img_selected = self.load_image('selector')
+        self.img_tile = self.load_image('tile_felt')
         self.img_suite_marker = self.load_image('blank')
 
         self.tile = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_tile, anchor=NW)
@@ -56,10 +56,10 @@ class Tile:
         self.buildable = False
 
     def remove_tower(self, update=True):
-        self.image_name = 'plank'
+        self.image_name = 'tile_felt'
         self.img_tower = self.load_image('blank')
         if update: self.canvas.itemconfig(self.tower, image=self.img_tower)
-        self.name = 'Empty Table'
+        self.name = 'Felt Carpet'
         self.value = ''
         self.suite = ''
         self.attack = 0

@@ -13,16 +13,18 @@ import os
 
 dimension_screen_attempt = 1000 # Dimension game will try to achieve
 dimension_screen_border = 20 # Width around playing field
-dimension_info_width = 300 # Width of information bar
+dimension_info_width = 296 # Width of information bar 256px + 2pcs dimension_screen_border
 
 
 # Hard coded game parameters
 game_tile_number = 15 
-game_tile_width = int((dimension_screen_attempt - 2*dimension_screen_border)/game_tile_number)
+game_tile_width = int((dimension_screen_attempt - 2*dimension_screen_border)
+                       /game_tile_number)
 
 
 dimension_screen = game_tile_number * game_tile_width
-dimension_window_width = dimension_screen + 2*dimension_screen_border + dimension_info_width
+dimension_window_width = (dimension_screen + 2*dimension_screen_border 
+                          + dimension_info_width)
 dimension_window_height = dimension_screen + 2*dimension_screen_border
 
 button_fraction = 1/3
@@ -91,11 +93,12 @@ class Main():
         1
 
     def load_sound(self, file_name):
+        """ loads specified sound file as wave object """
         return sa.WaveObject.from_wave_file(self.cwd 
                         + '\\sound\\' + file_name + '.wav')
 
     def play_sound(self, file_name):
-        
+        """ Plays specified sound file """ 
         if file_name == 'home_button':
             self.sound_home_button.play()
 
@@ -112,7 +115,6 @@ class Main():
         if (event.x > dimension_screen*button_fraction):
             for i in self.startup_screen:
                 if i.check_pos(event.x, event.y):
-                    #play_obj = self.sound_home_button.play()
                     self.play_sound('home_button')
 
     def home_button_functions(self):
@@ -261,9 +263,9 @@ class Main():
 
         image_filename = self.cwd + "\\art\\tower\\tile\\blank.png"
         self.tile_image_image = PhotoImage(file=image_filename)
-        self.tile_image = self.canvas_info.create_image(0, 20, anchor=NW, image=self.tile_image_image)
+        self.tile_image = self.canvas_info.create_image(dimension_screen_border, dimension_screen_border, anchor=NW, image=self.tile_image_image)
 
-        self.tile_image_name = self.canvas_info.create_text(0, 300, anchor=NW, text='Temporary name of tile', font=('Arial', 25))
+        self.tile_image_name = self.canvas_info.create_text(dimension_screen_border, 300, anchor=NW, text='Temporary name of tile', font=('Arial', 25))
 
         stats = ['Attack', 'Speed', 'Range']
         self.tile_image_stats = []
