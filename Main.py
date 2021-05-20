@@ -219,9 +219,15 @@ class Main():
     def gen_board(self):
         
         self.canvas_game.delete('all')
-        self.root.winfo_toplevel().geometry("{}x{}".format(dimension_screen + dimension_info_width + 2*dimension_screen_border, dimension_screen + 2*dimension_screen_border))
+        self.root.winfo_toplevel().geometry("{}x{}".format(
+                                dimension_screen + dimension_info_width 
+                                + 2*dimension_screen_border, dimension_screen 
+                                + 2*dimension_screen_border))
 
-        self.current_board = [[Tile(self.canvas_game, x=i, y=j, w=game_tile_width) for j in range(game_tile_number)] for i in range(game_tile_number)]
+        self.current_board = [[Tile(self.canvas_game, x=i, y=j, 
+                                    w=game_tile_width) 
+                                    for j in range(game_tile_number)] 
+                                    for i in range(game_tile_number)]
             
         self.load_map(1)
 
@@ -276,18 +282,22 @@ class Main():
 
         self.tile_image_image = self.load_image('blank')
         self.tile_image = self.canvas_info.create_image(
-        self.tile_image = self.canvas_info.create_image(dimension_screen_border, dimension_screen_border, anchor=NW, image=self.tile_image_image)
+                            dimension_screen_border, dimension_screen_border, 
+                            anchor=NW, image=self.tile_image_image)
 
-        self.tile_image_name = self.canvas_info.create_text(dimension_screen_border, 300, anchor=NW, text='Temporary name of tile', font=('Arial', 25))
+        self.tile_image_name = self.canvas_info.create_text(
+                            dimension_screen_border, 300, anchor=NW, 
+                            text='', font=('Arial', 25))
 
         stats = ['Attack', 'Speed', 'Range', 'Ability']
         self.tile_image_stats = []
+
         for i, stat in enumerate(stats):
-            self.tile_image_stats.append(self.canvas_info.create_text(200, 20 + 40*(i+1), anchor=NW, text=stat+': ', font=('Arial', 15)))
+            self.tile_image_stats.append(self.canvas_info.create_text(dimension_screen_border, 320 + 40*(i+1), anchor=NW, text=stat+': ', font=('Arial', 15)))
         stats = ['', '', '', 'TBA']
         self.tile_image_stat_values = []
         for i, stat in enumerate(stats):
-            self.tile_image_stat_values.append(self.canvas_info.create_text(280, 20 + 40*(i+1), anchor=NW, text=stat, font=('Arial', 15)))
+            self.tile_image_stat_values.append(self.canvas_info.create_text(dimension_screen_border + 80, 320 + 40*(i+1), anchor=NW, text=stat, font=('Arial', 15)))
 
     def gen_card(self, odds=None):
 
