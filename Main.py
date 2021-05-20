@@ -150,7 +150,7 @@ class Main():
         if self.tile_current != self.tile_previous:
             self.get_tile(x,y).highlight_tile(True)
             self.current_board[self.tile_previous[0]][self.tile_previous[1]].highlight_tile(False)
-            self.tile_information(x,y)
+            self.update_tile_information(x,y)
             self.tile_previous = [x, y]
 
     def deselect_tiles(self, event):
@@ -191,6 +191,7 @@ class Main():
                                    speed=1, ability=None)
                     self.tile_counter -= 1
                     self.play_sound('place_tower')
+                    self.update_tile_information(x, y)
                 else:
                     self.play_sound('place_fail')
         elif self.tile_counter == 0: self.play_sound('place_fail')
@@ -259,7 +260,7 @@ class Main():
         if (y < 0 or y > game_tile_number - 1): return False
         return True
 
-    def tile_information(self, x, y):
+    def update_tile_information(self, x, y):
         tile = self.get_tile(x,y)
 
         img = tile.get_image()
