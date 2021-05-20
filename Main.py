@@ -89,8 +89,12 @@ class Main():
 
         self.mainloop()
 
-    def load_image(self, file_name):
-        1
+    def load_image(self, file_name, tile=True):
+        if tile:
+            f = self.cwd + '\\art\\tower\\tile\\' + file_name + '.png'
+        else:
+            f = self.cwd + '\\art\\tower\\thumbnail\\' + file_name + '.png'
+        return PhotoImage(file=f)    
 
     def load_sound(self, file_name):
         """ loads specified sound file as wave object """
@@ -248,8 +252,7 @@ class Main():
     def tile_information(self, x, y):
         tile = self.current_board[x][y]
         img = tile.get_image()
-        image_filename = self.cwd + '\\art\\tower\\thumbnail\\' + img + '.png'
-        self.tile_image_image = PhotoImage(file=image_filename)
+        self.tile_image_image = self.load_image(img, tile=False)
         self.canvas_info.itemconfig(self.tile_image, image=self.tile_image_image)
         self.canvas_info.itemconfig(self.tile_image_name, text=tile.get_name())
 
@@ -259,8 +262,8 @@ class Main():
 
     def __create_tile_information(self):
 
-        image_filename = self.cwd + "\\art\\tower\\tile\\blank.png"
-        self.tile_image_image = PhotoImage(file=image_filename)
+        self.tile_image_image = self.load_image('blank')
+        self.tile_image = self.canvas_info.create_image(
         self.tile_image = self.canvas_info.create_image(dimension_screen_border, dimension_screen_border, anchor=NW, image=self.tile_image_image)
 
         self.tile_image_name = self.canvas_info.create_text(dimension_screen_border, 300, anchor=NW, text='Temporary name of tile', font=('Arial', 25))
