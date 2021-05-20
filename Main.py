@@ -148,7 +148,7 @@ class Main():
 
         self.tile_current = [x, y]
         if self.tile_current != self.tile_previous:
-            self.current_board[x][y].highlight_tile(True)
+            self.get_tile(x,y).highlight_tile(True)
             self.current_board[self.tile_previous[0]][self.tile_previous[1]].highlight_tile(False)
             self.tile_information(x,y)
             self.tile_previous = [x, y]
@@ -174,13 +174,13 @@ class Main():
         x, y = self.find_tile(event)
         if self.check_tile(x, y):
             print(x,y)
-            self.current_board[x][y].set_border()
+            self.get_tile(x,y).set_border()
 
     def build_tile(self, event):
         if self.state_game == 1 and self.tile_counter > 0:
             x, y = self.find_tile(event)
             if self.check_tile(x, y):
-                tile = self.current_board[x][y]
+                tile = self.get_tile(x,y)
                 if tile.get_buildable():
 
                     col, value = self.gen_card()
@@ -241,14 +241,18 @@ class Main():
             tile = int(tile)
             x = tile%game_tile_number - 1
             y = int(tile/game_tile_number)
-            self.current_board[x][y].set_path()
+            self.get_tile(x,y).set_path()
 
     def find_tile(self, event):
         """ Finds x,y position of currently hoovered over tile """
         x = int(event.x/game_tile_width)
         y = int(event.y/game_tile_width)
         return x, y
-    
+
+    def get_tile(self, x, y):
+        """ Returns reference to requested tile """
+        return self.current_board[x][y]
+
     def check_tile(self, x, y):
         """ Returns true if marked area is a viable tile """
         if (x < 0 or x > game_tile_number - 1): return False
@@ -256,7 +260,8 @@ class Main():
         return True
 
     def tile_information(self, x, y):
-        tile = self.current_board[x][y]
+        tile = self.get_tile(x,y)
+
         img = tile.get_image()
         self.tile_image_image = self.load_image(img, tile=False)
         self.canvas_info.itemconfig(self.tile_image, image=self.tile_image_image)
