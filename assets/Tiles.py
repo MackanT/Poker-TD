@@ -43,7 +43,7 @@ class Tile:
         self.img_tile = self.load_image(self.image_name)
         self.canvas.itemconfig(self.tile, image=self.img_tile)
 
-    def set_tower(self, image=None, suite=None, name=None, value=None, attack=None, range=None, speed=None):
+    def set_tower(self, image=None, suite=None, name=None, value=None, attack=None, range=None, speed=None, ability=None):
         self.image_name = 'temporary'
         self.img_tower = self.load_image(self.image_name)
         self.canvas.itemconfig(self.tower, image=self.img_tower)
@@ -55,6 +55,7 @@ class Tile:
         self.attack = attack
         self.range = range
         self.speed = speed
+        self.ability = ability
         self.buildable = False
 
     def remove_tower(self, update=True):
@@ -67,6 +68,7 @@ class Tile:
         self.attack = 0
         self.range = 0
         self.speed = 0
+        self.ability='None'
         self.buildable = True
 
     def get_buildable(self):

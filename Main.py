@@ -158,8 +158,6 @@ class Main():
             x, y = self.find_tile(event)
             if self.check_tile(x, y):
                 1
-                #self.current_board[x][y].set_path(not self.current_board[x][y].get_path())
-                ### Open window to "buid on tile"
                     
     def right_click(self, event):
         # Break out if not in game
@@ -267,11 +265,11 @@ class Main():
 
         self.tile_image_name = self.canvas_info.create_text(dimension_screen_border, 300, anchor=NW, text='Temporary name of tile', font=('Arial', 25))
 
-        stats = ['Attack', 'Speed', 'Range']
+        stats = ['Attack', 'Speed', 'Range', 'Ability']
         self.tile_image_stats = []
         for i, stat in enumerate(stats):
             self.tile_image_stats.append(self.canvas_info.create_text(200, 20 + 40*(i+1), anchor=NW, text=stat+': ', font=('Arial', 15)))
-        stats = ['1', '10000', '1']
+        stats = ['', '', '', 'TBA']
         self.tile_image_stat_values = []
         for i, stat in enumerate(stats):
             self.tile_image_stat_values.append(self.canvas_info.create_text(280, 20 + 40*(i+1), anchor=NW, text=stat, font=('Arial', 15)))
