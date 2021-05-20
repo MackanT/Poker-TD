@@ -105,6 +105,10 @@ class Main():
         """ Plays specified sound file """ 
         if file_name == 'home_button':
             self.sound_home_button.play()
+        elif file_name == 'place_tower':
+            self.sound_place_tile.play()
+        elif file_name == 'place_fail':
+            self.sound_place_fail.play()
 
     def start_timer(self):
         threading.Timer(1.0, self.startTimer).start()
@@ -182,12 +186,14 @@ class Main():
                     col, value = self.gen_card()
                     img_name = col + '_' + str(value)
 
-                    tile.set_tower(image=img_name, name=col + ' ' + str(value), suite=col, value=value, attack=3, range=2, speed=1)
+                    tile.set_tower(image=img_name, name=col + ' ' + str(value), 
+                                   suite=col, value=value, attack=3, range=2, 
+                                   speed=1, ability=None)
                     self.tile_counter -= 1
-                    play_obj = self.sound_place_tile.play()
+                    self.play_sound('place_tower')
                 else:
-                    play_obj = self.sound_place_fail.play()
-        elif self.tile_counter == 0: play_obj = self.sound_place_fail.play()
+                    self.play_sound('place_fail')
+        elif self.tile_counter == 0: self.play_sound('place_fail')
 
     def create_startup(self):
 
