@@ -418,7 +418,7 @@ class Main():
     def __create_tile_information_current_hand(self):
 
         self.tile_info_hand_title = self.canvas_info.create_text(
-                            dimension_info_width/2, dimension_info_cards_y-50, 
+                            dimension_info_width/2, dimension_info_cards_y-80, 
                             text=' - Current Hand - ', anchor=N, 
                             font=('Dutch801 XBd BT', 20))
 
@@ -454,19 +454,22 @@ class Main():
         # Placeholder for 'All Cards!" text when all cards can be used to build tower
         self.tile_info_hand_all_cards = self.canvas_info.create_text(
                                 dimension_info_width/2, dimension_info_cards_y 
-                                + 128, text='', anchor=N, 
+                                + 128 - 50, text='', anchor=N, 
                                 font=('Dutch801 XBd BT', 20))
-
-    def redraw_tower_temp(self):
-        print(1)
 
     def __create_tile_information_buttons(self):
         
-        self.tile_info_button_redraw = Button(self.canvas_info, text='Draw', command=self.redraw_tower_temp, font=('Dutch801 XBd BT', 15))
-        self.tile_info_button_redraw.place(x=dimension_info_width - 2*dimension_screen_border, y=400, height=30, width=100, anchor=E)
+        self.tile_info_button_redraw = Button(self.canvas_info, text='Draw', command=self.redraw_tower, font=('Dutch801 XBd BT', 15))
+        self.tile_info_button_redraw.place(x=dimension_info_width - dimension_screen_border/2, y=dimension_screen-dimension_screen_border, height=35, width=128, anchor=SE)
+
+        self.tile_info_button_build = Button(self.canvas_info, text='Play', command=self.build_tower, font=('Dutch801 XBd BT', 15))
+        self.tile_info_button_build.place(x=dimension_screen_border/2, y=dimension_screen-dimension_screen_border, height=35, width=128, anchor=SW)
 
     def get_card_name(self, suite, number):
-        return card_value_name[number] + ' of ' + suite.capitalize() + 's'
+        return str(self.tower_stats[number][5]) + ' of ' + suite.capitalize() + 's'
+
+    def get_card_short_name(self, number):
+        return str(self.tower_stats[number][6])
 
     def gen_card(self, odds=None):
 
@@ -477,9 +480,7 @@ class Main():
         return suite_num, number
 
 
-    def determine_best_hand(self):
-        # 5 of a kind, Straight flush, 4 of a kind, full house, flush, straight, 3 of a kind, two pair, one pair, high card
-
+    def determine_best_hand(self, type=False):
         cards = []
         for tile in self.current_hand: cards.append(tile.get_number())
         seen, dupes = self.__best_card_multiple(cards)
@@ -504,6 +505,11 @@ class Main():
 
         for i, state in enumerate(playable_hand):
             if state != 0:
+                if type: 
+                    
+                    
+                    
+                    return i
                 if i in full_hand:
                     self.__update_best_hand_position([0,1,2,3,4])
                     self.__update_best_hand_indicator()
@@ -517,9 +523,9 @@ class Main():
     def __reset_best_hand_position(self):
 
         for i in range(5):
-            self.canvas_info.coords(self.tile_info_hand_cards[i], 59*i, dimension_info_cards_y + 30)
-            self.canvas_info.coords(self.tile_info_hand_cards_values[i], 59*(i+1/2), dimension_info_cards_y + 70)
-            self.canvas_info.coords(self.tile_info_hand_cards_suites[i], 59*(i+1/2), dimension_info_cards_y + 128)
+            self.canvas_info.coords(self.tile_info_hand_cards[i], 59*i, dimension_info_cards_y + 30 - 50)
+            self.canvas_info.coords(self.tile_info_hand_cards_values[i], 59*(i+1/2), dimension_info_cards_y + 70 - 50)
+            self.canvas_info.coords(self.tile_info_hand_cards_suites[i], 59*(i+1/2), dimension_info_cards_y + 128 - 50)
         self.canvas_info.itemconfigure(self.tile_info_hand_all_cards, text='')
 
     def __update_best_hand_indicator(self):
