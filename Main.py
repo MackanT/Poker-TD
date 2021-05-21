@@ -32,11 +32,15 @@ button_fraction = 1/3
 
 # Eventually move over to file that is read ?
 color = ['#EBE8E0','#A8BBB0','#0A0A00','#A2252A'] # Color Pallette
-suite = ['heart', 'spade', 'diamond', 'club']
+
+card_suite = ['heart', 'spade', 'diamond', 'club']
+card_value = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+card_value_name = ['Ace', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King']
 
 class Main():
 
     def __init__(self):
+
 
         # Screen Settings
         self.root = Tk()
