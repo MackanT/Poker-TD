@@ -77,8 +77,7 @@ class Main():
 
         # Game Files
         file_name = self.cwd + '\\assets\\towers.csv'
-        self.tower_stats = np.genfromtxt(file_name, delimiter=';', dtype=(int, int, int, float, "|U10", "|U10", "|U10"), skip_header=1)
-
+        self.tower_stats = np.genfromtxt(file_name, delimiter=';', dtype=(int, int, float, float, "|U10", "|U10", "|U10"), skip_header=1)
 
         # Event Binders canvas_game
         self.canvas_game.bind('<Motion>', self.moved_mouse)
@@ -99,6 +98,9 @@ class Main():
         self.create_startup()
 
         self.mainloop()
+
+
+    ## Load Images + Sound
 
     def load_image(self, file_name, tile=True, folder=None):
 
@@ -126,6 +128,10 @@ class Main():
         elif file_name == 'all_cards':
             self.sound_all_cards.play()
 
+
+
+    ## Background Items - Timers
+
     def start_timer(self):
         threading.Timer(1.0, self.startTimer).start()
         if self.booleanGameActive == True:
@@ -134,6 +140,10 @@ class Main():
 
     def reset_timer(self):
         self.currentTime = 0
+
+
+
+    ## Home Screen Functions
 
     def home_button_sound(self, event):
         if (event.x > dimension_screen*button_fraction):
@@ -151,6 +161,29 @@ class Main():
                     print('About')
                 else:
                     print('Quit')
+
+    def create_startup(self):
+
+        self.startup_screen = []
+
+        b_names = ['play', 'about', 'quit']
+        b_num = len(b_names)
+
+        b_height = int(dimension_screen / b_num)
+        b_width = int(dimension_screen*button_fraction)
+
+        ## Imagery
+        image_filename = self.cwd + "\\art\\startup\\main_img_border.png"
+        self.startup_img = PhotoImage(file=image_filename)
+
+        for i, name in enumerate(b_names):
+            self.startup_screen.append(Home_Button(self.canvas_game, x=dimension_screen-b_width, y=i*b_height, w=b_width, h=b_height, col=color, image=name))
+
+        self.canvas_game.create_image(5, 50, anchor=NW, image = self.startup_img)
+        self.state_game = 0
+
+
+    ## User Input
 
     def highlight_tower_range(self, event):
         
@@ -186,25 +219,6 @@ class Main():
         if (self.state_game == 0): self.home_button_sound(event)
         elif self.state_game == 1: self.select_tile(event)
 
-    def select_tile(self, event):
-        """ Checks if current position is ok and sets its state accordingly"""
-        x, y = self.find_tile(event)
-        if not self.check_tile(x, y): return
-
-        self.tile_current = [x, y]
-        if self.tile_current != self.tile_previous:
-            self.get_tile(x,y).highlight_tile(True)
-            self.current_board[self.tile_previous[0]][self.tile_previous[1]].highlight_tile(False)
-            self.update_tile_information(x,y)
-            self.tile_previous = [x, y]
-
-    def deselect_tiles(self, event):
-        """ Deselects current tile """
-        # Break out if not in game
-        if self.state_game != 1: return
-        self.current_board[self.tile_current[0]][self.tile_current[1]].highlight_tile(False)
-        self.tile_previous = [-1, -1]
-
     def left_click(self, event):
         if self.state_game == 0: self.home_button_functions()
         elif self.state_game == 1:
@@ -222,38 +236,94 @@ class Main():
             if not tile.get_path() and not tile.get_buildable():
                 tile.switch_selected()
 
+
+
+    ## Tower Functions
+
+    def select_tile(self, event):
+        """ Checks if current position is ok and sets its state accordingly"""
+        x, y = self.find_tile(event)
+        if not self.check_tile(x, y): return
+
+        self.tile_current = [x, y]
+        if self.tile_current == self.tile_previous: return
+
+        self.get_tile(x,y).highlight_tile(True)
+        tile = self.current_board[self.tile_previous[0]][self.tile_previous[1]]
+        tile.highlight_tile(False)
+        self.update_tile_information(x,y)
+        self.tile_previous = [x, y]
+
+    def deselect_tiles(self, event):
+        """ Deselects current tile """
+        # Break out if not in game
+        if self.state_game != 1: return
+        tile = self.current_board[self.tile_current[0]][self.tile_current[1]]
+        tile.highlight_tile(False)
+        self.tile_previous = [-1, -1]
+
+    def find_tile(self, event):
+        """ Finds x,y position of currently hoovered over tile """
+        x = int(event.x/game_tile_width)
+        y = int(event.y/game_tile_width)
+        return x, y
+
+    def get_tile(self, x, y):
+        """ Returns reference to requested tile x,y """
+        return self.current_board[x][y]
+
+    def check_tile(self, x, y):
+        ### Unneccessary?
+        """ Returns true if marked area is a viable tile """
+        if (x < 0 or x > game_tile_number - 1): return False
+        if (y < 0 or y > game_tile_number - 1): return False
+        return True
+
+    def get_card_name(self, suite, number):
+        """ Returns expected name of single tower """
+        return str(self.tower_stats[number][5])+' of '+suite.capitalize()+'s'
+
+    def get_card_short_name(self, number):
+        """ Returns short_name of tower, i.e. Ace = A """
+        return str(self.tower_stats[number][6])
+
     def place_tower(self, event):
+        """ Attempts to create tower at mouse clicked tile """
+
         if self.state_game == 1 and self.tile_counter < 4:
             x, y = self.find_tile(event)
             if self.check_tile(x, y):
                 tile = self.get_tile(x,y)
-                if tile.get_buildable():
 
-                    suite_num, number = self.gen_card()
-                    suite = card_suite[suite_num]
-
-                    tile.set_tower(image=str(suite_num) + '_' + str(number), 
-                                   number=number,
-                                   name=self.get_card_name(suite, number), 
-                                   suite=suite,   
-                                   attack=self.tower_stats[number][1], 
-                                   range=self.tower_stats[number][2], 
-                                   speed=self.tower_stats[number][3], 
-                                   ability=self.tower_stats[number][4]
-                                   )
-
-                    self.tile_counter += 1
-                    self.current_hand.append(tile)
-                    self.play_sound('place_tower')
-                    self.update_tile_information(x, y)
-                    self.update_tile_hand()
-                    self.determine_best_hand()
-                else:
+                if not tile.get_buildable():
                     self.play_sound('place_fail')
+                    return
+
+                suite_num, number = self.gen_card()
+                suite = card_suite[suite_num]
+
+                tile.set_tower(image=str(suite_num) + '_' + str(number), 
+                                number=number,
+                                name=self.get_card_name(suite, number), 
+                                suite=suite,   
+                                attack=self.tower_stats[number][1], 
+                                range=self.tower_stats[number][2], 
+                                speed=self.tower_stats[number][3], 
+                                ability=self.tower_stats[number][4]
+                                )
+
+                self.tile_counter += 1
+                self.current_hand.append(tile)
+                self.play_sound('place_tower')
+                self.update_tile_information(x, y)
+                self.update_tile_hand()
+                self.determine_best_hand()
+
         elif self.tile_counter == 4: self.play_sound('place_fail')
 
     def redraw_tower(self):
-        
+        """ Rerandomizes selected towers"""
+
         # Avoid redraw if not all cards are played
         if self.tile_counter != 4: return
 
@@ -268,14 +338,14 @@ class Main():
             suite = card_suite[suite_num]
 
             tile.set_tower(image=str(suite_num) + '_' + str(number), 
-                                   name=self.get_card_name(suite, number), 
-                                   suite=suite, 
-                                   attack=3, 
-                                   range=2, 
-                                   speed=1, 
-                                   ability=None, 
-                                   number=number
-                                )
+                           number=number,
+                           name=self.get_card_name(suite, number), 
+                           suite=suite,   
+                           attack=self.tower_stats[number][1], 
+                           range=self.tower_stats[number][2], 
+                           speed=self.tower_stats[number][3], 
+                           ability=self.tower_stats[number][4]
+                           )
             
             # self.play_sound('place_tower') # Tower redraw sound....
             self.update_tile_information(0, 0, tile=tile)
@@ -283,29 +353,13 @@ class Main():
             self.determine_best_hand()
 
     def build_tower(self):
-        
+        """ Converts single towers to actual tower """
         new_card = self.determine_best_hand(type=True)
         print(new_card)
 
-    def create_startup(self):
+    
 
-        self.startup_screen = []
-
-        b_names = ['play', 'about', 'quit']
-        b_num = len(b_names)
-
-        b_height = int(dimension_screen / b_num)
-        b_width = int(dimension_screen*button_fraction)
-
-        ## Imagery
-        image_filename = self.cwd + "\\art\\startup\\main_img_border.png"
-        self.startup_img = PhotoImage(file=image_filename)
-
-        for i, name in enumerate(b_names):
-            self.startup_screen.append(Home_Button(self.canvas_game, x=dimension_screen-b_width, y=i*b_height, w=b_width, h=b_height, col=color, image=name))
-
-        self.canvas_game.create_image(5, 50, anchor=NW, image = self.startup_img)
-        self.state_game = 0
+    ## Game Board Functions
 
     def gen_board(self):
         
@@ -343,21 +397,9 @@ class Main():
             y = int(tile/game_tile_number)
             self.get_tile(x,y).set_path()
 
-    def find_tile(self, event):
-        """ Finds x,y position of currently hoovered over tile """
-        x = int(event.x/game_tile_width)
-        y = int(event.y/game_tile_width)
-        return x, y
 
-    def get_tile(self, x, y):
-        """ Returns reference to requested tile """
-        return self.current_board[x][y]
 
-    def check_tile(self, x, y):
-        """ Returns true if marked area is a viable tile """
-        if (x < 0 or x > game_tile_number - 1): return False
-        if (y < 0 or y > game_tile_number - 1): return False
-        return True
+    ## Tile Information Functions
 
     def update_tile_information(self, x, y, tile=None):
         if tile == None:
@@ -465,11 +507,6 @@ class Main():
         self.tile_info_button_build = Button(self.canvas_info, text='Play', command=self.build_tower, font=('Dutch801 XBd BT', 15))
         self.tile_info_button_build.place(x=dimension_screen_border/2, y=dimension_screen-dimension_screen_border, height=35, width=128, anchor=SW)
 
-    def get_card_name(self, suite, number):
-        return str(self.tower_stats[number][5]) + ' of ' + suite.capitalize() + 's'
-
-    def get_card_short_name(self, number):
-        return str(self.tower_stats[number][6])
 
     def gen_card(self, odds=None):
 
@@ -479,6 +516,10 @@ class Main():
 
         return suite_num, number
 
+
+
+
+    ## Determin Current Hand
 
     def determine_best_hand(self, type=False):
         cards = []
@@ -630,6 +671,7 @@ class Main():
         else: return 0
 
 
+
     # Help Functions
 
     def __draw_circle_radius(self, x, y, r):
@@ -637,7 +679,6 @@ class Main():
         y0 = y - r
         x1 = x + r
         y1 = y + r
-
         return x0, x1, y0, y1
 
 
