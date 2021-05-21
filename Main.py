@@ -152,6 +152,35 @@ class Main():
                 else:
                     print('Quit')
 
+    def highlight_tower_range(self, event):
+        
+        x, y = self.find_tile(event)
+
+        self.tile_current = [x, y]
+        if self.tile_current != self.tile_previous:          
+            tile = self.get_tile(x, y)
+
+            if tile.get_path() or tile.get_buildable(): return
+
+            radius = tile.get_range()
+            tile_w = tile.get_w()
+            tile_x = int((tile.get_x()+1/2)*tile_w)
+            tile_y = int((tile.get_y()+1/2)*tile_w)
+
+            x0, x1, y0, y1 = self.__draw_circle_radius(tile_x, tile_y, radius*tile_w)
+            self.canvas_game.itemconfigure(self.tower_radius_marker, state='normal')
+            self.canvas_game.coords(self.tower_radius_marker, x0, y0, x1, y1)
+            self.update_tile_information(x,y)
+            
+            self.tile_previous = [x, y]
+        else:
+            self.get_tile(x, y).highlight_tile(False)
+
+    def unhighlight_tower_range(self, event):
+        """ Hides radius marker when ctrl is released """
+        if event.keycode == 17:
+            self.canvas_game.itemconfigure(self.tower_radius_marker, state='hidden')
+
     def moved_mouse(self, event):
         """ Fired by mouse movement, calls appropriate function depending on game state """
         if (self.state_game == 0): self.home_button_sound(event)
@@ -294,6 +323,8 @@ class Main():
                                     for i in range(game_tile_number)]
             
         self.load_map(1)
+
+        self.tower_radius_marker = self.canvas_game.create_oval(0,0,100,100, width=4, fill=None, state='hidden')
 
         self.state_game = 1
         self.__create_tile_information()
@@ -593,6 +624,18 @@ class Main():
 
         if 0 in cards: return 1
         else: return 0
+
+
+    # Help Functions
+
+    def __draw_circle_radius(self, x, y, r):
+        x0 = x - r
+        y0 = y - r
+        x1 = x + r
+        y1 = y + r
+
+        return x0, x1, y0, y1
+
 
     def mainloop(self):
         self.root.mainloop()
