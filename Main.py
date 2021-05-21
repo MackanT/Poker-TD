@@ -44,6 +44,7 @@ class Main():
                                 + dimension_screen_border, dimension_screen 
                                 + 2*dimension_screen_border))
         self.root.configure(bg=color[3])
+        self.root.resizable(False, False)
         self.root.title('Poker TD - The Play')
         self.cwd = os.getcwd()
 
@@ -81,10 +82,12 @@ class Main():
 
         # Event Binders canvas_game
         self.canvas_game.bind('<Motion>', self.moved_mouse)
-        self.canvas_game.bind('<Double-Button-1>', self.build_tile)
+        self.canvas_game.bind('<Double-Button-1>', self.place_tower)
         self.canvas_game.bind('<Button-1>', self.left_click)
         # self.canvas_game.bind('<Button-2>', self.middle_click)
         self.canvas_game.bind('<Button-3>', self.right_click)
+        self.canvas_game.bind('<Control-Motion>', self.highlight_tower_range)
+        self.root.bind('<KeyRelease>', self.unhighlight_tower_range)
 
         # Event Binders canvas_info
         self.canvas_info.bind('<Motion>', self.deselect_tiles)
