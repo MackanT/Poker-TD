@@ -73,9 +73,10 @@ class Main():
         self.current_hand = []
 
         # Sound
-        self.sound_home_button = self.load_sound('test')
+        self.sound_home_button = self.load_sound('home_screen')
         self.sound_place_tile = self.load_sound('place')
         self.sound_place_fail = self.load_sound('place_fail')
+        self.sound_all_cards = self.load_sound('full_cards')
 
         # Event Binders canvas_game
         self.canvas_game.bind('<Motion>', self.moved_mouse)
@@ -118,6 +119,8 @@ class Main():
             self.sound_place_tile.play()
         elif file_name == 'place_fail':
             self.sound_place_fail.play()
+        elif file_name == 'all_cards':
+            self.sound_all_cards.play()
 
     def start_timer(self):
         threading.Timer(1.0, self.startTimer).start()
@@ -207,7 +210,7 @@ class Main():
                     self.update_tile_hand()
                 else:
                     self.play_sound('place_fail')
-        elif self.tile_counter == 0: self.play_sound('place_fail')
+        elif self.tile_counter == 4: self.play_sound('place_fail')
 
     def create_startup(self):
 
