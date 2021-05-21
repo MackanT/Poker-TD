@@ -43,15 +43,17 @@ class Tile:
         self.img_tile = self.load_image(self.image_name)
         self.canvas.itemconfig(self.tile, image=self.img_tile)
 
-    def set_tower(self, image=None, suite=None, name=None, value=None, attack=None, range=None, speed=None, ability=None):
+    def set_tower(self, image=None, suite=None, suite_num=None, name=None, value=None, attack=None, range=None, speed=None, ability=None, number=None):
         self.image_name = 'temporary'
         self.img_tower = self.load_image(self.image_name)
         self.canvas.itemconfig(self.tower, image=self.img_tower)
         self.suite = suite
+        self.suite_num = suite_num
         self.img_suite_marker = self.load_image(self.suite + '_marker')
         self.canvas.itemconfig(self.suite_marker, image=self.img_suite_marker)
-        self.name = name
-        self.value = value
+        self.name = name # Card name, "Ace of Spades"
+        self.number = number # Ace = 1/14
+        self.value = value # Ace = A
         self.attack = attack
         self.range = range
         self.speed = speed
@@ -59,12 +61,13 @@ class Tile:
         self.buildable = False
 
     def remove_tower(self, update=True):
-        self.image_name = 'tile_felt_green'
+        self.image_name = 'tile_felt_' + self.tile_color
         self.img_tower = self.load_image('blank')
         if update: self.canvas.itemconfig(self.tower, image=self.img_tower)
         self.name = 'Felt Carpet'
         self.value = ''
         self.suite = ''
+        self.suite_num = -1
         self.attack = 0
         self.range = 0
         self.speed = 0
@@ -88,6 +91,12 @@ class Tile:
 
     def get_image(self):
         return self.image_name
+
+    def get_suite(self):
+        return self.suite
+    
+    def get_suite_num(self):
+        return self.suite_num
 
     def get_name(self):
         return self.name
