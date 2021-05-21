@@ -32,8 +32,6 @@ button_fraction = 1/3
 color = ['#EBE8E0','#A8BBB0','#0A0A00','#A2252A'] # Color Pallette
 
 card_suite = ['heart', 'spade', 'diamond', 'club']
-card_value = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
-card_value_name = ['Ace', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King']
 
 class Main():
 
@@ -75,6 +73,11 @@ class Main():
         self.sound_place_tile = self.load_sound('place')
         self.sound_place_fail = self.load_sound('place_fail')
         self.sound_all_cards = self.load_sound('full_cards')
+
+        # Game Files
+        file_name = self.cwd + '\\assets\\towers.csv'
+        self.tower_stats = np.genfromtxt(file_name, delimiter=';', dtype=(int, int, int, float, "|U10", "|U10", "|U10"), skip_header=1)
+
 
         # Event Binders canvas_game
         self.canvas_game.bind('<Motion>', self.moved_mouse)

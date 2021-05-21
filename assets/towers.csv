@@ -1,0 +1,14 @@
+﻿# Tower value;attack;range;speed [100 ms];ability;name;short_name
+0;14;4;10;None;Ace;A
+2;2;3;20;None;Two;2
+3;3;3;20;None;Three;3
+4;4;3;20;None;Four;4
+5;5;3;20;None;Five;5
+6;6;3;20;None;Six;6
+7;7;3;20;None;Seven;7
+8;8;3;20;None;Eight;8
+9;9;3;20;None;Nine;9
+10;10;3;20;None;Ten;10
+11;11;4;20;None;Jack;J
+12;12;4;20;None;Queen;Q
+13;13;4;20;None;King;K
