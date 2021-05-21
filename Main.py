@@ -187,15 +187,19 @@ class Main():
                 tile = self.get_tile(x,y)
                 if tile.get_buildable():
 
-                    col, value = self.gen_card()
-                    img_name = col + '_' + str(value)
+                    suite, number = self.gen_card()
+                    suite_num = suite
+                    suite = card_suite[suite]
+                    img_name = suite + '_' + str(number)
 
-                    tile.set_tower(image=img_name, name=col + ' ' + str(value), 
-                                   suite=col, value=value, attack=3, range=2, 
-                                   speed=1, ability=None)
+                    tile.set_tower(image=img_name, name=self.get_card_name(suite, number), 
+                                   suite=suite, suite_num=suite_num, value=card_value[number], attack=3, range=2, 
+                                   speed=1, ability=None, number=number)
                     self.tile_counter -= 1
+                    self.current_hand.append(tile)
                     self.play_sound('place_tower')
                     self.update_tile_information(x, y)
+                    self.update_tile_hand()
                 else:
                     self.play_sound('place_fail')
         elif self.tile_counter == 0: self.play_sound('place_fail')
@@ -274,35 +278,57 @@ class Main():
         tile = self.get_tile(x,y)
 
         img = tile.get_image()
-        self.tile_image_image = self.load_image(img, tile=False)
-        self.canvas_info.itemconfig(self.tile_image, image=self.tile_image_image)
-        self.canvas_info.itemconfig(self.tile_image_name, text=tile.get_name())
+        self.info_tile_image_file = self.load_image(img, tile=False)
+        self.canvas_info.itemconfig(self.info_tile_image, 
+                                    image=self.info_tile_image_file)
+        self.canvas_info.itemconfig(self.info_tile_name, text=tile.get_name())
 
         stats = tile.get_stats()
         for i, stat in enumerate(stats):
-            self.canvas_info.itemconfig(int(self.tile_image_stat_values[i]), text=stat)
+            self.canvas_info.itemconfig(int(self.info_tile_stat_values[i]), 
+                                        text=stat)
+
+    def update_tile_hand(self):
+        
+        pos = len(self.current_hand) - 1
+        value = self.current_hand[pos].get_value()
+        suite =  self.current_hand[pos].get_suite_num()
+
+        self.canvas_info.itemconfigure(self.tile_info_hand_cards_values[pos], text=value)
+        self.canvas_info.itemconfigure(self.tile_info_hand_cards_suites[pos], image=self.tile_info_hand_symbol[suite])
+        
+
 
     def __create_tile_information(self):
 
-        self.tile_image_image = self.load_image('blank')
-        self.tile_image = self.canvas_info.create_image(
+        self.info_tile_image_file = self.load_image('blank')
+        self.info_tile_image = self.canvas_info.create_image(
                             dimension_screen_border, dimension_screen_border, 
-                            anchor=NW, image=self.tile_image_image)
+                            anchor=NW, image=self.info_tile_image_file)
 
-        self.tile_image_name = self.canvas_info.create_text(
+        self.info_tile_name = self.canvas_info.create_text(
                             dimension_screen_border, 300, anchor=NW, 
-                            text='', font=('Arial', 25))
+                            text='', font=('Dutch801 XBd BT', 22))
 
         stats = ['Attack', 'Speed', 'Range', 'Ability']
-        self.tile_image_stats = []
+        self.info_tile_stat_name = []
 
         for i, stat in enumerate(stats):
-            self.tile_image_stats.append(self.canvas_info.create_text(dimension_screen_border, 320 + 40*(i+1), anchor=NW, text=stat+': ', font=('Arial', 15)))
+            self.info_tile_stat_name.append(self.canvas_info.create_text(
+                            dimension_screen_border, 320 + 40*(i+1), 
+                            anchor=NW, text=stat+': ', font=('Dutch801 XBd BT', 15)))
+        
         stats = ['', '', '', 'TBA']
-        self.tile_image_stat_values = []
+        self.info_tile_stat_values = []
         for i, stat in enumerate(stats):
-            self.tile_image_stat_values.append(self.canvas_info.create_text(dimension_screen_border + 80, 320 + 40*(i+1), anchor=NW, text=stat, font=('Arial', 15)))
+            self.info_tile_stat_values.append(self.canvas_info.create_text(
+                            dimension_screen_border + 80, 320 + 40*(i+1), 
+                            anchor=NW, text=stat, font=('Dutch801 XBd BT', 15)))
+
+        tile_info_y = dimension_screen - 128 - 2*dimension_screen_border
         self.tile_info_hand_title = self.canvas_info.create_text(
+                            dimension_info_width/2, tile_info_y - 50, 
+                            text='Current Hand', anchor=N, 
                             font=('Dutch801 XBd BT', 20))
 
         # Loads blank card backgrounds
