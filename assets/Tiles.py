@@ -13,7 +13,7 @@ class Tile:
         self.w = w
         self.path = False
 
-        self.tile_color = 'green'
+        self.tile_color = 'red'
         
         # Tower Variables
         self.remove_tower(update=False)

@@ -298,14 +298,40 @@ class Main():
         self.tile_image_stat_values = []
         for i, stat in enumerate(stats):
             self.tile_image_stat_values.append(self.canvas_info.create_text(dimension_screen_border + 80, 320 + 40*(i+1), anchor=NW, text=stat, font=('Arial', 15)))
+        self.tile_info_hand_title = self.canvas_info.create_text(
+                            font=('Dutch801 XBd BT', 20))
+
+        # Loads blank card backgrounds
+        self.tile_info_hand_cards = []
+        self.tile_info_hand_image = self.load_image('card', folder='misc')
+        for i in range(5):
+            self.tile_info_hand_cards.append(self.canvas_info.create_image(59*i, tile_info_y + 30, anchor=NW, image=self.tile_info_hand_image))
+
+        # Prints card number on card
+        self.tile_info_hand_cards_values = []
+        for i in range(5):
+            self.tile_info_hand_cards_values.append(self.canvas_info.create_text(59*(i+1/2), tile_info_y + 70, anchor=CENTER, text='', font=('Dutch801 XBd BT', 28)))
+        
+        # Loads 4 suite symbols
+        self.tile_info_hand_symbol = []
+        for name in card_suite:
+            self.tile_info_hand_symbol.append(self.load_image(name + '_marker', folder='misc'))
+        
+        # Prints 4 suite symbols
+        self.tile_info_hand_cards_suites = []
+        for i in range(5):
+            self.tile_info_hand_cards_suites.append(self.canvas_info.create_image(59*(i+1/2), tile_info_y + 128, anchor=CENTER, image=None))
+
+    def get_card_name(self, suite, number):
+        return card_value_name[number] + ' of ' + suite.capitalize() + 's'
 
     def gen_card(self, odds=None):
 
         # Add odds eventually
-        color_num = np.random.randint(4)
-        value_num = np.random.randint(13)
+        suite_num = np.random.randint(4)
+        number = np.random.randint(13)
 
-        return suite[color_num], value_num
+        return suite_num, number
 
 
     def mainloop(self):
