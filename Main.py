@@ -223,30 +223,39 @@ class Main():
         elif self.tile_counter == 4: self.play_sound('place_fail')
 
     def redraw_tower(self):
-        suite, number = self.gen_card()
-        # if self.tile_counter < 2:
-        # suite = 0
-        # number = 10
-        # else:
-        #     suite = 1
-        #     number = 11
-        suite_num = suite
-        suite = card_suite[suite]
-        img_name = suite + '_' + str(number)
+        
+        # Avoid redraw if not all cards are played
+        if self.tile_counter != 4: return
 
-        tile.set_tower(image=img_name, name=self.get_card_name(suite, number), 
-                        suite=suite, suite_num=suite_num, value=card_value[number], attack=3, range=2, 
-                        speed=1, ability=None, number=number)
+        iter = []
+        for i, tile in enumerate(self.current_hand):
+            if tile.get_selected(): iter.append(i)
         
-        for i, t in enumerate(self.current_hand):
-            if t == tile:
-                self.current_hand[i] == t
-                break
+        for i in iter:
+            tile = self.current_hand[i]
+
+            suite_num, number = self.gen_card()
+            suite = card_suite[suite_num]
+
+            tile.set_tower(image=str(suite_num) + '_' + str(number), 
+                                   name=self.get_card_name(suite, number), 
+                                   suite=suite, 
+                                   attack=3, 
+                                   range=2, 
+                                   speed=1, 
+                                   ability=None, 
+                                   number=number
+                                )
+            
+            # self.play_sound('place_tower') # Tower redraw sound....
+            self.update_tile_information(0, 0, tile=tile)
+            self.update_tile_hand(pos=i)
+            self.determine_best_hand()
+
+    def build_tower(self):
         
-        # self.play_sound('place_tower') # Tower redraw sound....
-        self.update_tile_information(0, 0, tile=tile)
-        self.update_tile_hand(pos=i)
-        self.determine_best_hand()
+        new_card = self.determine_best_hand(type=True)
+        print(new_card)
 
     def create_startup(self):
 
@@ -337,10 +346,10 @@ class Main():
         if pos == None:
             pos = self.tile_counter
 
-        value = self.current_hand[pos].get_value()
-        suite =  self.current_hand[pos].get_suite_num()
+        short_name = self.get_short_name(self.current_hand[pos])
+        suite =  self.get_suite_number(self.current_hand[pos])
 
-        self.canvas_info.itemconfigure(self.tile_info_hand_cards_values[pos], text=value)
+        self.canvas_info.itemconfigure(self.tile_info_hand_cards_values[pos], text=short_name)
         self.canvas_info.itemconfigure(self.tile_info_hand_cards_suites[pos], image=self.tile_info_hand_symbol[suite])
         
     def __create_tile_information(self):
@@ -362,7 +371,7 @@ class Main():
                             dimension_screen_border, 320 + 40*(i+1), 
                             anchor=NW, text=stat+': ', font=('Dutch801 XBd BT', 15)))
         
-        stats = ['', '', '', 'TBA']
+        stats = ['', '', '', '']
         self.info_tile_stat_values = []
         for i, stat in enumerate(stats):
             self.info_tile_stat_values.append(self.canvas_info.create_text(
@@ -547,10 +556,20 @@ class Main():
         """ Checks if flush returns T/F """
         if self.tile_counter < 4: return 0
 
-        suite = self.current_hand[0].get_suite_num()
+        suite = self.get_suite_number(self.current_hand[0])
         for i in range(1, len(self.current_hand)):
-            if suite != self.current_hand[i].get_suite_num(): return 0
+            if suite != self.get_suite_number(self.current_hand[i]): return 0
         return 1
+    
+    def get_suite_number(self, tile):
+        """ converts from tile suite 'heart, spade...' to '0, 1...' """
+        tile_suite = tile.get_suite()
+        for i, suite in enumerate(card_suite):
+            if suite == tile_suite: return i
+    
+    def get_short_name(self, tile):
+        """ converts from tile number '0, 1, ..., 11, 12' to 'A, 1, ... , Q, K' """
+        return self.tower_stats[tile.get_number()][6]
 
     def __is_straigt(self, cards):
         """ Checks if straight returns T/F """

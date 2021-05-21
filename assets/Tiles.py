@@ -34,26 +34,26 @@ class Tile:
     def set_path(self):
         self.image_name = 'tile_felt_white'
         self.name = 'Felt Path'
-        self.value = ''
         self.attack = ''
         self.range = ''
         self.speed = ''
+        self.ability = ''
         self.path = True
         self.buildable = False
         self.img_tile = self.load_image(self.image_name)
         self.canvas.itemconfig(self.tile, image=self.img_tile)
 
-    def set_tower(self, image=None, suite=None, suite_num=None, name=None, value=None, attack=None, range=None, speed=None, ability=None, number=None):
-        self.image_name = 'temporary'
+    def set_tower(self, image=None, suite=None, name=None, attack=None, range=None, speed=None, ability=None, number=None):
+        self.image_name = 'temporary' # Switch to tower images eventually when they are created
         self.img_tower = self.load_image(self.image_name)
         self.canvas.itemconfig(self.tower, image=self.img_tower)
+        
         self.suite = suite
-        self.suite_num = suite_num
         self.img_suite_marker = self.load_image(self.suite + '_marker')
         self.canvas.itemconfig(self.suite_marker, image=self.img_suite_marker)
+
         self.name = name # Card name, "Ace of Spades"
-        self.number = number # Ace = 1/14
-        self.value = value # Ace = A
+        self.number = number # Ace = 0, King = 12
         self.attack = attack
         self.range = range
         self.speed = speed
@@ -65,14 +65,20 @@ class Tile:
         self.img_tower = self.load_image('blank')
         if update: self.canvas.itemconfig(self.tower, image=self.img_tower)
         self.name = 'Felt Carpet'
-        self.value = ''
         self.suite = ''
-        self.suite_num = -1
         self.attack = 0
         self.range = 0
         self.speed = 0
-        self.ability='None'
+        self.ability = ''
         self.buildable = True
+        self.selected = False
+
+    def get_selected(self):
+        return self.selected
+    
+    def switch_selected(self):
+        self.selected = not self.selected
+        self.highlight_tile(self.selected)
 
     def get_buildable(self):
         return self.buildable
@@ -88,33 +94,28 @@ class Tile:
     
     def get_w(self):
         return self.w
+    
+    def get_range(self):
+        return self.range
 
     def get_image(self):
         return self.image_name
 
     def get_suite(self):
         return self.suite
-    
-    def get_suite_num(self):
-        return self.suite_num
 
     def get_name(self):
         return self.name
-
-    def get_value(self):
-        return self.value
     
     def get_number(self):
         return self.number
-        
+
     def get_stats(self):
-        return [self.attack, self.range, self.speed]
+        return [self.attack, self.speed, self.range, self.ability]
 
     def highlight_tile(self, state):
+        if self.selected: return
         if state: 
             self.canvas.itemconfig(self.select, state='normal')
         else:
             self.canvas.itemconfig(self.select, state='hidden')
-
-    def set_border(self):
-        print('Add a selectable border around shape!')
