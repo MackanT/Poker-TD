@@ -1,12 +1,10 @@
 from tkinter import *
 import threading
 import numpy as np
-from numpy import random
 from assets.UI import *
 from assets.Tiles import *
 import simpleaudio as sa
 import csv
-import numpy as np
 import os
 
 # Game Design Dimensions
@@ -20,7 +18,6 @@ dimension_info_width = 296 # Width of information bar 256px + 2pcs dimension_scr
 game_tile_number = 15 
 game_tile_width = int((dimension_screen_attempt - 2*dimension_screen_border)
                        /game_tile_number)
-
 
 dimension_screen = game_tile_number * game_tile_width
 dimension_window_width = (dimension_screen + 2*dimension_screen_border 

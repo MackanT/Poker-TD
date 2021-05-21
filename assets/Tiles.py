@@ -103,7 +103,10 @@ class Tile:
 
     def get_value(self):
         return self.value
-
+    
+    def get_number(self):
+        return self.number
+        
     def get_stats(self):
         return [self.attack, self.range, self.speed]
 
