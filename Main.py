@@ -218,32 +218,30 @@ class Main():
     
         x, y = self.find_tile(event)
         if self.check_tile(x, y):
-            # print(x,y)
-            # self.get_tile(x,y).set_border()
-            #self.redraw_tower(self.get_tile(x,y))
-            1
+            tile = self.get_tile(x,y)
+            if not tile.get_path() and not tile.get_buildable():
+                tile.switch_selected()
 
-    def build_tile(self, event):
+    def place_tower(self, event):
         if self.state_game == 1 and self.tile_counter < 4:
             x, y = self.find_tile(event)
             if self.check_tile(x, y):
                 tile = self.get_tile(x,y)
                 if tile.get_buildable():
 
-                    suite, number = self.gen_card()
-                    # if self.tile_counter < 2:
-                    # suite = 0
-                    # number = 10
-                    # else:
-                    #     suite = 1
-                    #     number = 11
-                    suite_num = suite
-                    suite = card_suite[suite]
-                    img_name = suite + '_' + str(number)
+                    suite_num, number = self.gen_card()
+                    suite = card_suite[suite_num]
 
-                    tile.set_tower(image=img_name, name=self.get_card_name(suite, number), 
-                                   suite=suite, suite_num=suite_num, value=card_value[number], attack=3, range=2, 
-                                   speed=1, ability=None, number=number)
+                    tile.set_tower(image=str(suite_num) + '_' + str(number), 
+                                   number=number,
+                                   name=self.get_card_name(suite, number), 
+                                   suite=suite,   
+                                   attack=self.tower_stats[number][1], 
+                                   range=self.tower_stats[number][2], 
+                                   speed=self.tower_stats[number][3], 
+                                   ability=self.tower_stats[number][4]
+                                   )
+
                     self.tile_counter += 1
                     self.current_hand.append(tile)
                     self.play_sound('place_tower')
