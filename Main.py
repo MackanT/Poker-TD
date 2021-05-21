@@ -70,6 +70,8 @@ class Main():
         self.tile_current = [-2,-2]
         self.tile_counter = 5
 
+        self.current_hand = []
+
         # Sound
         self.sound_home_button = self.load_sound('test')
         self.sound_place_tile = self.load_sound('place')
@@ -93,8 +95,11 @@ class Main():
 
         self.mainloop()
 
-    def load_image(self, file_name, tile=True):
-        if tile:
+    def load_image(self, file_name, tile=True, folder=None):
+
+        if folder:
+            f = self.cwd + '\\art\\' + folder + '\\' + file_name + '.png'
+        elif tile:
             f = self.cwd + '\\art\\tower\\tile\\' + file_name + '.png'
         else:
             f = self.cwd + '\\art\\tower\\thumbnail\\' + file_name + '.png'
