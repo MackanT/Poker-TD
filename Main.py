@@ -648,7 +648,11 @@ class Main():
     
     def get_short_name(self, tile):
         """ converts from tile number '0, 1, ..., 11, 12' to 'A, 1, ... , Q, K' """
-        return self.tower_stats[tile.get_number()][6]
+        number = tile.get_number()
+        if number in [0, 10, 11, 12]:
+            return self.tower_stats[number][5][0]
+        else:
+            return str(number)
 
     def __is_straigt(self, cards):
         """ Checks if straight returns T/F """
