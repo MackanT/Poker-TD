@@ -160,14 +160,14 @@ class Main():
     ## Background Items - Timers
 
     def start_timer(self):
-        threading.Timer(0.2, self.start_timer).start()
+        threading.Timer(0.1, self.start_timer).start()
         if self.state_game == 1:
             self.time_counter += 1
             if self.wave_in_progress:
-                self.move_enemies()
+                self.game_update()
                 self.shoot_enemies()
             ## Every Second
-            if self.time_counter%5 == 0:
+            if self.time_counter%10 == 0:
                 if self.turn_time_current == 0:
                     if not self.wave_in_progress: self.new_wave()
                     else:
@@ -458,7 +458,7 @@ class Main():
 
         self.current_towers.append(self.current_board[x][y])
 
-        if self.turn_time_current < 0:
+        if self.turn_time_current > 0:
             self.turn_time_current = 0
             self.canvas_game.itemconfigure(self.timer_visual, text=str(self.turn_time_current))
             self.new_wave()
