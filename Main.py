@@ -70,11 +70,15 @@ class Main():
 
         self.current_hand = []
 
+        self.odds_base = 10
+        self.odds_current = 0
+
         # Sound
         self.sound_home_button = self.load_sound('home_screen')
         self.sound_place_tile = self.load_sound('place')
         self.sound_place_fail = self.load_sound('place_fail')
         self.sound_all_cards = self.load_sound('full_cards')
+        self.sound_coin_use = self.load_sound('coin_use')
 
         # Game Files
         file_name = self.cwd + '\\assets\\towers.csv'
@@ -128,6 +132,8 @@ class Main():
             self.sound_place_fail.play()
         elif file_name == 'all_cards':
             self.sound_all_cards.play()
+        elif file_name == 'coin_use':
+            self.sound_coin_use.play()
 
     ## Background Items - Timers
 
@@ -455,6 +461,33 @@ class Main():
 
         self.__reset_best_hand_position()
 
+        self.current_gold = 100 # Temporarily very high!
+        self.info_tile_image_gold = self.load_image('coin', folder='misc')
+        self.info_tile_gold_image = self.canvas_info.create_image(
+                            dimension_screen_border, 600, 
+                            anchor=W, image=self.info_tile_image_gold)
+        self.info_tile_gold_number = self.canvas_info.create_text(
+                            2*dimension_screen_border, 600, anchor=W, 
+                            text=self.current_gold, font=('Dutch801 XBd BT', 22))
+        
+        self.info_tile_image_draw = self.load_image('draw', folder='misc')
+        self.info_tile_draw_image = self.canvas_info.create_image(
+                            dimension_screen_border, 660, 
+                            anchor=W, image=self.info_tile_image_draw)
+        self.info_tile_draw_number = self.canvas_info.create_text(
+                            2*dimension_screen_border, 660, anchor=W, 
+                            text=self.draws_current, font=('Dutch801 XBd BT', 22))
+
+        
+
+        # Temporary debugging!
+        self.canvas_info.create_text(
+                            dimension_screen_border, 700, anchor=W, 
+                            text='Current Odds:', font=('Dutch801 XBd BT', 16))
+        self.info_tile_odds_number = self.canvas_info.create_text(
+                            9*dimension_screen_border, 700, anchor=W, 
+                            text=self.odds_current, font=('Dutch801 XBd BT', 16))
+
     def __create_tile_information_current_hand(self):
 
         self.tile_info_hand_title = self.canvas_info.create_text(
@@ -505,26 +538,100 @@ class Main():
         self.tile_info_button_build = Button(self.canvas_info, text='Play', command=self.build_tower, font=('Dutch801 XBd BT', 15))
         self.tile_info_button_build.place(x=dimension_screen_border/2, y=dimension_screen-dimension_screen_border, height=35, width=128, anchor=SW)
 
+        self.tile_info_button_tip = Button(self.canvas_info, text='Tip', command=self.increase_odds, font=('Dutch801 XBd BT', 15))
+        self.tile_info_button_tip.place(x=dimension_info_width - dimension_screen_border/2, y=600, height=35, width=128, anchor=E)
 
-    def gen_card(self, odds=None):
+        self.tile_info_button_draw = Button(self.canvas_info, text='Draw', command=self.increase_draws, font=('Dutch801 XBd BT', 15))
+        self.tile_info_button_draw.place(x=dimension_info_width - dimension_screen_border/2, y=660, height=35, width=128, anchor=E)
+
+    def gen_card(self):
 
         # Add odds eventually
-        suite_num = np.random.randint(4)
-        number = np.random.randint(13)
+
+        # Attempts to increase likelyhood that all further cards are of the same suite
+        weights = np.ones(4)*self.odds_base
+        if self.tile_counter >= 0:
+            current_suite = self.get_suite_number(self.current_hand[0])
+            weights[current_suite] += self.odds_current
+        weights *= 1 / np.sum(weights)
+        suite_num = np.random.choice([0, 1, 2, 3], p=weights)
+
+        # Increases likelyhood of getting same card number as previous with odds and likelyhood of getting +-1 with half odds
+        weights = np.ones(13)*self.odds_base
+        if self.tile_counter >= 0:
+            for tile in self.current_hand:
+                i = tile.get_number()
+                weights[i] += self.odds_current
+                weights[(i+1)%13] += self.odds_current/2
+                weights[(i-1)%13] += self.odds_current/2
+        weights *= 1 / np.sum(weights)
+        number = np.random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], p=weights)
 
         return suite_num, number
 
+    def __reset_best_hand_position(self, new_turn=False):
 
+        for i in range(5):
+            self.canvas_info.coords(self.tile_info_hand_cards[i], 59*i, dimension_info_cards_y + 30 - 50)
+            self.canvas_info.coords(self.tile_info_hand_cards_values[i], 59*(i+1/2), dimension_info_cards_y + 70 - 50)
+            self.canvas_info.coords(self.tile_info_hand_cards_suites[i], 59*(i+1/2), dimension_info_cards_y + 128 - 50)
+        self.canvas_info.itemconfigure(self.tile_info_hand_all_cards, text='')
 
+        if not new_turn: return
+        for i in range(5):
+            self.canvas_info.itemconfigure(self.tile_info_hand_cards_values[i], text='')
+            self.canvas_info.itemconfigure(self.tile_info_hand_cards_suites[i], image=None, state='hidden')
 
-    ## Determin Current Hand
+    def __update_best_hand_indicator(self):
+        self.canvas_info.itemconfigure(self.tile_info_hand_all_cards, text='All Cards!')
+
+    def __update_best_hand_position(self, index):
+
+        self.__reset_best_hand_position()
+
+        for i in index:
+            self.canvas_info.move(self.tile_info_hand_cards[i], 0, -30)
+            self.canvas_info.move(self.tile_info_hand_cards_values[i], 0, -30)
+            self.canvas_info.move(self.tile_info_hand_cards_suites[i], 0, -30)
+
+    def __update_gold_counter(self):
+        self.canvas_info.itemconfigure(self.info_tile_gold_number, text=str(self.current_gold))
+        self.canvas_info.itemconfigure(self.info_tile_odds_number, text=str(self.odds_current))
+
+    def __update_draw_counter(self):
+        self.canvas_info.itemconfigure(self.info_tile_draw_number, text=str(self.draws_current))
+        self.__update_gold_counter()
+
+    def increase_odds(self):
+
+        if self.current_gold <= 10:
+            print('Inusfficient Gold!')
+            return
+        
+        self.odds_current += 2
+        self.current_gold -= 10
+        self.__update_gold_counter()
+        self.play_sound('coin_use')
+
+    def increase_draws(self):
+        if self.current_gold <= 30:
+            print('Inusfficient Gold!')
+            return
+
+        self.draws_current += 1
+        self.current_gold -= 30
+        self.__update_draw_counter()
+        self.play_sound('coin_use')
+        
+
+    ## Determine Current Hand
 
     def determine_best_hand(self, type=False):
         cards = []
         for tile in self.current_hand: cards.append(tile.get_number())
         seen, dupes = self.__best_card_multiple(cards)
 
-        playable_hand = [0 for i in range(11)]
+        playable_hand = [0 for i in range(12)]
         playable_hand[1] = self.__n_of_a_kind(seen, 5)
         if playable_hand[1]: 
             playable_hand[0] = self.__is_flush()
