@@ -223,6 +223,7 @@ class Main():
     ## User Input
 
     def key_pressed(self, event):
+        if self.state_game == 0: return
         if event.keycode == 17:
             # When Ctrl pressed, attempts to highligt  tile[x, y]
             mouse_x = self.root.winfo_pointerx() - self.root.winfo_rootx() - dimension_screen_border
@@ -235,6 +236,7 @@ class Main():
             self.highlight_tower_range(x, y)
         
     def key_released(self, event):
+        if self.state_game == 0: return
         if event.keycode == 17:
             self.unhighlight_tower_range(event)
 
@@ -343,6 +345,8 @@ class Main():
     def place_tower(self, event):
         """ Attempts to create tower at mouse clicked tile """
 
+        if self.wave_in_progress: return
+
         if self.state_game == 1 and self.tile_counter < 4:
             x, y = self.find_tile(event)
             if self.check_tile(x, y):
@@ -376,6 +380,8 @@ class Main():
 
     def redraw_tower(self):
         """ Rerandomizes selected towers"""
+
+        if self.wave_in_progress: return
 
         # Avoid redraw if not all cards are played or if no more draws
         if self.tile_counter != 4: return
@@ -798,25 +804,32 @@ class Main():
         self.canvas_info.itemconfigure(self.info_tile_draw_number, text=str(self.draws_current))
         self.__update_gold_counter()
 
+    def __change_gold(self, amount):
+        self.current_gold += amount
+        if self.current_gold <= 0:
+            print('Game Over!')
+        self.__update_gold_counter()
+
     def increase_odds(self):
+        if not self.wave_in_progress: return
 
         if self.current_gold <= 10:
             print('Inusfficient Gold!')
             return
         
         self.odds_current += 2
-        self.current_gold -= 10
-        self.__update_gold_counter()
+        self.__change_gold(-10)
         self.play_sound('coin_use')
 
     def increase_draws(self):
+        if not self.wave_in_progress: return
+
         if self.current_gold <= 30:
             print('Inusfficient Gold!')
             return
 
         self.draws_current += 1
-        self.current_gold -= 30
-        self.__update_draw_counter()
+        self.__change_gold(-30)
         self.play_sound('coin_use')
         
 
