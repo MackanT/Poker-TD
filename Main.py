@@ -32,7 +32,6 @@ button_fraction = 1/3
 
 # Eventually move over to file that is read ?
 color = ['#EBE8E0','#A8BBB0','#0A0A00','#A2252A'] # Color Pallette
-
 card_suite = ['heart', 'spade', 'diamond', 'club']
 
 class Main():
@@ -65,8 +64,10 @@ class Main():
         # -1 pre, 0 start screen, 1 in-game
         self.state_game = -1 
 
-        self.tile_previous = [0, 0]
-        self.tile_current = [-2,-2]
+        self.tile_previous_selected = [-5, -5]
+        self.tile_current_selected = [-2,-2]
+        self.tile_previous_marked = [-5, -5]
+        self.tile_current_marked = [-2,-2]
         self.tile_counter = -1
 
         self.current_hand = []
@@ -108,8 +109,8 @@ class Main():
         self.canvas_game.bind('<Button-1>', self.left_click)
         # self.canvas_game.bind('<Button-2>', self.middle_click)
         self.canvas_game.bind('<Button-3>', self.right_click)
-        self.canvas_game.bind('<Control-Motion>', self.highlight_tower_range)
-        self.root.bind('<KeyRelease>', self.unhighlight_tower_range)
+        self.root.bind('<KeyPress>', self.key_pressed)
+        self.root.bind('<KeyRelease>', self.key_released)
 
         # Event Binders canvas_info
         self.canvas_info.bind('<Motion>', self.deselect_tiles)
@@ -220,14 +221,29 @@ class Main():
 
     ## User Input
 
-    def highlight_tower_range(self, event):
+    def key_pressed(self, event):
+        if event.keycode == 17:
+            # When Ctrl pressed, attempts to highligt  tile[x, y]
+            mouse_x = self.root.winfo_pointerx() - self.root.winfo_rootx() - dimension_screen_border
+            mouse_y = self.root.winfo_pointery() - self.root.winfo_rooty() - dimension_screen_border
+            x = int(mouse_x/game_tile_width)
+            y = int(mouse_y/game_tile_width)
+
+            if not self.check_tile(x, y): return
+
+            self.highlight_tower_range(x, y)
         
-        x, y = self.find_tile(event)
+    def key_released(self, event):
+        if event.keycode == 17:
+            self.unhighlight_tower_range(event)
 
-        self.tile_current = [x, y]
-        if self.tile_current != self.tile_previous:          
+    def highlight_tower_range(self, x, y):
+
+        self.tile_current_marked = [x, y]
+
+        if self.tile_current_marked != self.tile_previous_marked:      
+
             tile = self.get_tile(x, y)
-
             if tile.get_path() or tile.get_buildable(): return
 
             radius = tile.get_range()
@@ -239,15 +255,15 @@ class Main():
             self.canvas_game.itemconfigure(self.tower_radius_marker, state='normal')
             self.canvas_game.coords(self.tower_radius_marker, x0, y0, x1, y1)
             self.update_tile_information(x,y)
-            
-            self.tile_previous = [x, y]
+            self.tile_previous_marked = [x, y]
         else:
             self.get_tile(x, y).highlight_tile(False)
 
     def unhighlight_tower_range(self, event):
         """ Hides radius marker when ctrl is released """
-        if event.keycode == 17:
-            self.canvas_game.itemconfigure(self.tower_radius_marker, state='hidden')
+        self.canvas_game.itemconfigure(self.tower_radius_marker, state='hidden')
+        self.tile_previous_marked = [-5, -5]
+        self.tile_current_marked = [-2,-2]
 
     def moved_mouse(self, event):
         """ Fired by mouse movement, calls appropriate function depending on game state """
@@ -277,25 +293,26 @@ class Main():
 
     def select_tile(self, event):
         """ Checks if current position is ok and sets its state accordingly"""
+        
         x, y = self.find_tile(event)
         if not self.check_tile(x, y): return
 
-        self.tile_current = [x, y]
-        if self.tile_current == self.tile_previous: return
+        self.tile_current_selected = [x, y]
+        if self.tile_current_selected == self.tile_previous_selected: return
 
         self.get_tile(x,y).highlight_tile(True)
-        tile = self.current_board[self.tile_previous[0]][self.tile_previous[1]]
+        tile = self.current_board[self.tile_previous_selected[0]][self.tile_previous_selected[1]]
         tile.highlight_tile(False)
         self.update_tile_information(x,y)
-        self.tile_previous = [x, y]
+        self.tile_previous_selected = [x, y]
 
     def deselect_tiles(self, event):
         """ Deselects current tile """
         # Break out if not in game
         if self.state_game != 1: return
-        tile = self.current_board[self.tile_current[0]][self.tile_current[1]]
+        tile = self.current_board[self.tile_current_selected[0]][self.tile_current_selected[1]]
         tile.highlight_tile(False)
-        self.tile_previous = [-1, -1]
+        self.tile_previous_selected = [-1, -1]
 
     def find_tile(self, event):
         """ Finds x,y position of currently hoovered over tile """
