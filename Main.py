@@ -4,6 +4,7 @@ import threading
 import numpy as np
 from assets.UI import *
 from assets.Tiles import Tile
+from assets.Enemies import Enemy
 import simpleaudio as sa
 import csv
 import os
@@ -69,6 +70,9 @@ class Main():
         self.tile_counter = -1
 
         self.current_hand = []
+        self.current_enemies = []
+        self.tile_path_x = []
+        self.tile_path_y = []
 
         self.odds_base = 10
         self.odds_current = 0
@@ -471,7 +475,42 @@ class Main():
             tile = int(tile)
             x = tile%game_tile_number - 1
             y = int(tile/game_tile_number)
+            self.tile_path_x.append(y)
+            self.tile_path_y.append(x)
             self.get_tile(x,y).set_path()
+        
+        self.tile_path_x = np.array(self.tile_path_x)*game_tile_width + int(game_tile_width*0.5)
+        self.tile_path_y = np.array(self.tile_path_y)*game_tile_width + int(game_tile_width*0.5)
+
+
+        for i, x in enumerate(self.tile_path_x):
+
+            self.canvas_game.create_text(x, self.tile_path_y[i], text=i)
+
+
+
+
+    def new_wave(self):
+        
+        self.wave_in_progress = True
+
+        if not self.current_wave_built: self.build_tower(override=True)
+
+        self.current_wave += 1
+        print('New Wave!')
+        num_enemies = 1
+        goal = [self.tile_path_x[0], self.tile_path_y[0]]
+
+        for i in range(num_enemies):
+            self.current_enemies.append(Enemy(canvas=self.canvas_game, 
+                                x=self.tile_path_x[0]-game_tile_width, y=self.tile_path_y[0], 
+                                hp=100, speed=10, goal=goal))
+
+    def move_enemies(self):
+        
+        for e in self.current_enemies:
+
+            e.move()
 
 
 
