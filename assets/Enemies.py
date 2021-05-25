@@ -30,12 +30,28 @@ class Enemy:
     def get_goal(self):
         return self.goal_index
 
+    def __get_dir(self):
+        delta_x = self.goal[0] - self.x
+        delta_y = self.goal[1] - self.y
+
+        dir_x = 0 if delta_x == 0 else (-1 if delta_x < 0 else 1)
+        dir_y = 0 if delta_y == 0 else (-1 if delta_y < 0 else 1)
+
+        return dir_x, dir_y
+
     def move(self):
 
-        delta_x = -1 if self.goal[0] - self.x < 0 else 1
-        delta_y = -1 if self.goal[1] - self.y < 0 else 1
+        dir_x0, dir_y0 = self.__get_dir()
 
-        self.canvas.move(self.shape, delta_x*self.speed, delta_y*self.speed)
+        move_x = dir_x0*self.speed
+        move_y = dir_y0*self.speed
 
-        self.x += delta_x
-        self.y += delta_y
+        self.canvas.move(self.shape, move_x, move_y)
+
+        self.x += move_x
+        self.y += move_y
+
+        dir_x1, dir_y1 = self.__get_dir()
+
+        if dir_x0 != dir_x1 or dir_y0 != dir_y1: return True
+        else: return False

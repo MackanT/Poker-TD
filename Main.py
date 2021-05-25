@@ -80,12 +80,15 @@ class Main():
         self.draws_base = 1
         self.draws_current = self.draws_base
 
-        self.turn_time_base = 5
+        self.turn_time_base = 30
         self.turn_time_current = self.turn_time_base
 
         self.current_wave = 0
         self.current_wave_built = False
         self.wave_in_progress = False
+
+        self.mobs_base = 10
+        self.mobs_current = self.mobs_base
 
         # Sound
         self.sound_home_button = self.load_sound('home_screen')
@@ -157,13 +160,15 @@ class Main():
         threading.Timer(0.2, self.start_timer).start()
         if self.state_game == 1:
             self.time_counter += 1
-
+            if self.wave_in_progress:
+                self.move_enemies()
             ## Every Second
             if self.time_counter%5 == 0:
                 if self.turn_time_current == 0:
                     if not self.wave_in_progress: self.new_wave()
                     else:
-                        self.move_enemies()
+                        print('da')
+                        # self.spawn_mobs()
                 else:   
                     self.turn_time_current -= 1
                     self.canvas_game.itemconfigure(self.timer_visual, text=str(self.turn_time_current))
@@ -482,7 +487,6 @@ class Main():
         self.tile_path_x = np.array(self.tile_path_x)*game_tile_width + int(game_tile_width*0.5)
         self.tile_path_y = np.array(self.tile_path_y)*game_tile_width + int(game_tile_width*0.5)
 
-
         for i, x in enumerate(self.tile_path_x):
 
             self.canvas_game.create_text(x, self.tile_path_y[i], text=i)
@@ -498,19 +502,27 @@ class Main():
 
         self.current_wave += 1
         print('New Wave!')
-        num_enemies = 1
-        goal = [self.tile_path_x[0], self.tile_path_y[0]]
 
-        for i in range(num_enemies):
-            self.current_enemies.append(Enemy(canvas=self.canvas_game, 
+
+    def spawn_mobs(self):
+                
+        goal = [self.tile_path_x[0], self.tile_path_y[0]]
+        self.current_enemies.append(Enemy(canvas=self.canvas_game, 
                                 x=self.tile_path_x[0]-game_tile_width, y=self.tile_path_y[0], 
-                                hp=100, speed=10, goal=goal))
+                                hp=100, speed=16, goal=goal))
 
     def move_enemies(self):
         
         for e in self.current_enemies:
 
-            e.move()
+            new_goal = e.move()
+            
+            if new_goal:
+                index = e.get_goal() + 1
+                if index == 75:
+                    print('Got away!')
+                else:
+                    e.set_goal([self.tile_path_x[index], self.tile_path_y[index]])
 
 
 
@@ -656,8 +668,6 @@ class Main():
         self.tile_info_button_draw.place(x=dimension_info_width - dimension_screen_border/2, y=660, height=35, width=128, anchor=E)
 
     def gen_card(self):
-
-        # Add odds eventually
 
         # Attempts to increase likelyhood that all further cards are of the same suite
         weights = np.ones(4)*self.odds_base
