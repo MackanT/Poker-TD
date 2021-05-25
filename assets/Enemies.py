@@ -2,10 +2,10 @@ from tkinter import *
 import os
 
 class Enemy:
-    """ x_pos, y_pos, width, height, text, color, canvas
+    """ canvas, x_pos, y_pos, enemy hp, enemy speed, enemy movement goal
     """
 
-    def __init__(self, canvas=None, x=None, y=None, hp=None, speed=None, goal=None):
+    def __init__(self, canvas=None, x=None, y=None, hp=None, speed=None, goal=None, id=None):
         self.canvas = canvas
         self.x = x
         self.y = y
@@ -13,6 +13,7 @@ class Enemy:
         self.speed = speed
         self.goal = goal
         self.goal_index = 0
+        self.id = id
 
         self.shape = self.canvas.create_rectangle(self.x, self.y, self.x+20, self.y+20, fill='green')
 
@@ -23,12 +24,21 @@ class Enemy:
     def get_y(self):
         return self.y
 
+    def get_id(self):
+        return self.id
+
     def set_goal(self, goal):
         self.goal = goal
         self.goal_index += 1
 
     def get_goal(self):
         return self.goal_index
+    
+    def do_damage(self, damage):
+        self.hp -= damage
+        if self.hp <= 0:
+            return True
+        else: return False
 
     def __get_dir(self):
         delta_x = self.goal[0] - self.x
@@ -38,6 +48,9 @@ class Enemy:
         dir_y = 0 if delta_y == 0 else (-1 if delta_y < 0 else 1)
 
         return dir_x, dir_y
+
+    def remove(self):
+        self.canvas.delete(self.shape)
 
     def move(self):
 

@@ -549,7 +549,8 @@ class Main():
             if new_goal:
                 index = e.get_goal() + 1
                 if index == 75:
-                    print('Got away!')
+                    self.__change_gold(-2*(self.current_wave%10))
+                    self.remove_enemy(e)
                 else:
                     e.set_goal([self.tile_path_x[index], self.tile_path_y[index]])
 
@@ -571,6 +572,18 @@ class Main():
                 if distance < tower_range:
                     self.fire(tower, self.current_enemies[i])
 
+    def remove_enemy(self, enemy):
+        enemy_index = self.find_enemy(enemy.get_id())
+        self.current_enemies.pop(enemy_index)
+        enemy.remove()
+
+    def find_enemy(self, id):
+
+        for i, e in enumerate(self.current_enemies):
+            if e.get_id() == id: 
+                return i
+        
+        1
 
     def get_enemy_locations(self):
 
