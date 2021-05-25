@@ -70,6 +70,7 @@ class Main():
         self.tile_counter = -1
 
         self.current_hand = []
+        self.current_towers = []
         self.current_enemies = []
         self.tile_path_x = []
         self.tile_path_y = []
@@ -80,7 +81,7 @@ class Main():
         self.draws_base = 1
         self.draws_current = self.draws_base
 
-        self.turn_time_base = 30
+        self.turn_time_base = 10
         self.turn_time_current = self.turn_time_base
 
         self.current_wave = 0
@@ -162,13 +163,13 @@ class Main():
             self.time_counter += 1
             if self.wave_in_progress:
                 self.move_enemies()
+                self.shoot_enemies()
             ## Every Second
             if self.time_counter%5 == 0:
                 if self.turn_time_current == 0:
                     if not self.wave_in_progress: self.new_wave()
                     else:
-                        print('da')
-                        # self.spawn_mobs()
+                        self.spawn_mobs()
                 else:   
                     self.turn_time_current -= 1
                     self.canvas_game.itemconfigure(self.timer_visual, text=str(self.turn_time_current))
@@ -437,6 +438,8 @@ class Main():
         self.__update_gold_counter()
         self.current_wave_built = True
 
+        self.current_towers.append(self.current_board[x][y])
+
         if self.turn_time_current < 0:
             self.turn_time_current = 0
             self.canvas_game.itemconfigure(self.timer_visual, text=str(self.turn_time_current))
@@ -491,9 +494,6 @@ class Main():
 
             self.canvas_game.create_text(x, self.tile_path_y[i], text=i)
 
-
-
-
     def new_wave(self):
         
         self.wave_in_progress = True
@@ -503,13 +503,15 @@ class Main():
         self.current_wave += 1
         print('New Wave!')
 
-
     def spawn_mobs(self):
-                
-        goal = [self.tile_path_x[0], self.tile_path_y[0]]
-        self.current_enemies.append(Enemy(canvas=self.canvas_game, 
-                                x=self.tile_path_x[0]-game_tile_width, y=self.tile_path_y[0], 
-                                hp=100, speed=16, goal=goal))
+        
+        if self.mobs_current > 0:
+
+            goal = [self.tile_path_x[0], self.tile_path_y[0]]
+            self.current_enemies.append(Enemy(canvas=self.canvas_game, 
+                                    x=self.tile_path_x[0]-game_tile_width, y=self.tile_path_y[0], 
+                                    hp=100, speed=16, goal=goal))
+            self.mobs_current -= 1
 
     def move_enemies(self):
         
@@ -524,6 +526,38 @@ class Main():
                 else:
                     e.set_goal([self.tile_path_x[index], self.tile_path_y[index]])
 
+    def shoot_enemies(self):
+
+        if len(self.current_enemies) == 0: return
+
+        mobs = self.get_enemy_locations()
+
+        for tower in self.current_towers:
+
+            tower_pos = np.array([tower.get_x(), tower.get_y()])
+            tower_pos *= game_tile_width
+            tower_range = tower.get_range()*game_tile_width
+
+            dist = np.linalg.norm(mobs - tower_pos, axis=1)
+
+            for i, distance in enumerate(dist):
+                if distance < tower_range:
+                    self.fire(tower, self.current_enemies[i])
+
+
+    def get_enemy_locations(self):
+
+        num_mobs = len(self.current_enemies)
+        pos_mobs = np.zeros((num_mobs, 2))
+
+        for i, e in enumerate(self.current_enemies):
+            pos_mobs[i, 0] = e.get_x()
+            pos_mobs[i, 1] = e.get_y()
+        
+        return pos_mobs
+
+    def fire(self, tower, enemy):
+        1
 
 
     ## Tile Information Functions
