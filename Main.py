@@ -1,8 +1,9 @@
+
 from tkinter import *
 import threading
 import numpy as np
 from assets.UI import *
-from assets.Tiles import *
+from assets.Tiles import Tile
 import simpleaudio as sa
 import csv
 import os
@@ -128,8 +129,6 @@ class Main():
         elif file_name == 'all_cards':
             self.sound_all_cards.play()
 
-
-
     ## Background Items - Timers
 
     def start_timer(self):
@@ -140,7 +139,6 @@ class Main():
 
     def reset_timer(self):
         self.currentTime = 0
-
 
 
     ## Home Screen Functions
@@ -357,7 +355,7 @@ class Main():
         new_card = self.determine_best_hand(type=True)
         print(new_card)
 
-    
+
 
     ## Game Board Functions
 
