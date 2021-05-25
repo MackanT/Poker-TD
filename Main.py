@@ -4,7 +4,7 @@ import threading
 import numpy as np
 from assets.UI import *
 from assets.Tiles import Tile
-from assets.Enemies import Enemy
+from assets.Enemies import Enemy, Projectile
 import simpleaudio as sa
 import csv
 import os
@@ -73,6 +73,7 @@ class Main():
         self.current_hand = []
         self.current_towers = []
         self.current_enemies = []
+        self.current_projectiles = []
         self.tile_path_x = []
         self.tile_path_y = []
 
@@ -527,10 +528,19 @@ class Main():
             goal = [self.tile_path_x[0], self.tile_path_y[0]]
             self.current_enemies.append(Enemy(canvas=self.canvas_game, 
                                     x=self.tile_path_x[0]-game_tile_width, y=self.tile_path_y[0], 
-                                    hp=100, speed=16, goal=goal))
+                                    hp=30, speed=32, goal=goal, id=self.mobs_base - self.mobs_current))
             self.mobs_current -= 1
 
-    def move_enemies(self):
+    def game_update(self):
+
+        for i, e in enumerate(self.current_projectiles):
+            hit, kill = e.move()
+            if kill:
+                self.__change_gold(self.current_wave%10)
+                self.remove_enemy(e.get_target())
+            if hit: 
+                self.current_projectiles.pop(i)
+                e.remove()
         
         for e in self.current_enemies:
 
@@ -574,7 +584,8 @@ class Main():
         return pos_mobs
 
     def fire(self, tower, enemy):
-        1
+        if tower.attempt_fire():
+            self.current_projectiles.append(Projectile(canvas=self.canvas_game, x=int((tower.get_x()+0.5)*game_tile_width), y=int((tower.get_y()+0.5)*game_tile_width), damage=tower.get_damage(), speed=12, target=enemy))
 
 
     ## Tile Information Functions
