@@ -76,6 +76,13 @@ class Main():
         self.draws_base = 1
         self.draws_current = self.draws_base
 
+        self.turn_time_base = 5
+        self.turn_time_current = self.turn_time_base
+
+        self.current_wave = 0
+        self.current_wave_built = False
+        self.wave_in_progress = False
+
         # Sound
         self.sound_home_button = self.load_sound('home_screen')
         self.sound_place_tile = self.load_sound('place')
@@ -100,7 +107,9 @@ class Main():
         self.canvas_info.bind('<Motion>', self.deselect_tiles)
 
 
-        #self.startTimer()
+        self.time_counter = 0
+
+        self.start_timer()
 
         ## Startup Screen
         self.create_startup()
@@ -141,13 +150,22 @@ class Main():
     ## Background Items - Timers
 
     def start_timer(self):
-        threading.Timer(1.0, self.startTimer).start()
-        if self.booleanGameActive == True:
-            self.currentTime += 1
-            #self.canvas_game.itemconfig(self.timeMarker, text=str(self.currentTime))
+        threading.Timer(0.2, self.start_timer).start()
+        if self.state_game == 1:
+            self.time_counter += 1
+
+            ## Every Second
+            if self.time_counter%5 == 0:
+                if self.turn_time_current == 0:
+                    if not self.wave_in_progress: self.new_wave()
+                    else:
+                        self.move_enemies()
+                else:   
+                    self.turn_time_current -= 1
+                    self.canvas_game.itemconfigure(self.timer_visual, text=str(self.turn_time_current))
 
     def reset_timer(self):
-        self.currentTime = 0
+        self.turn_time_current = self.turn_time_base
 
 
     ## Home Screen Functions
@@ -433,6 +451,8 @@ class Main():
         self.load_map(1)
 
         self.tower_radius_marker = self.canvas_game.create_oval(0,0,100,100, width=4, fill=None, state='hidden')
+
+        self.timer_visual = self.canvas_game.create_text(dimension_screen_border, dimension_screen_border, fill='White', anchor=NW, text=str(self.turn_time_base), font=('Dutch801 XBd BT', 28))
 
         self.state_game = 1
         self.__create_tile_information()

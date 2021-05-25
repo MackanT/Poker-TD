@@ -48,9 +48,10 @@ class Tile:
         self.img_tower = self.load_image(self.image_name)
         self.canvas.itemconfig(self.tower, image=self.img_tower)
         
-        self.suite = suite
-        self.img_suite_marker = self.load_image(self.suite + '_marker')
-        self.canvas.itemconfig(self.suite_marker, image=self.img_suite_marker)
+        if suite != False:
+            self.suite = suite
+            self.img_suite_marker = self.load_image(self.suite + '_marker')
+            self.canvas.itemconfig(self.suite_marker, image=self.img_suite_marker)
 
         self.name = name # Card name, "Ace of Spades"
         self.number = number # Ace = 0, King = 12
@@ -63,7 +64,9 @@ class Tile:
     def remove_tower(self, update=True):
         self.image_name = 'tile_felt_' + self.tile_color
         self.img_tower = self.load_image('blank')
-        if update: self.canvas.itemconfig(self.tower, image=self.img_tower)
+        if update: 
+            self.canvas.itemconfig(self.tower, image=self.img_tower)
+            self.canvas.itemconfig(self.suite_marker, image=self.img_tower)
         self.name = 'Felt Carpet'
         self.suite = ''
         self.attack = 0
@@ -75,6 +78,10 @@ class Tile:
 
     def get_selected(self):
         return self.selected
+
+    def deselect(self):
+        self.selected = False
+        self.highlight_tile(self.selected)
     
     def switch_selected(self):
         self.selected = not self.selected
