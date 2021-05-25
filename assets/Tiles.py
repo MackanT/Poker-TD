@@ -58,6 +58,7 @@ class Tile:
         self.attack = attack
         self.range = range
         self.speed = speed
+        self.speed_current = speed - 1
         self.ability = ability
         self.buildable = False
 
@@ -87,6 +88,14 @@ class Tile:
         self.selected = not self.selected
         self.highlight_tile(self.selected)
 
+    def attempt_fire(self):
+        self.speed_current += 1
+        if self.speed_current % self.speed == 0:
+            self.speed_current = 0
+            return True
+        else:
+            return False
+
     def get_buildable(self):
         return self.buildable
 
@@ -104,6 +113,9 @@ class Tile:
     
     def get_range(self):
         return self.range
+    
+    def get_damage(self):
+        return self.attack
 
     def get_image(self):
         return self.image_name
