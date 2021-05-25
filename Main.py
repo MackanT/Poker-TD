@@ -73,6 +73,9 @@ class Main():
         self.odds_base = 10
         self.odds_current = 0
 
+        self.draws_base = 1
+        self.draws_current = self.draws_base
+
         # Sound
         self.sound_home_button = self.load_sound('home_screen')
         self.sound_place_tile = self.load_sound('place')
@@ -82,7 +85,7 @@ class Main():
 
         # Game Files
         file_name = self.cwd + '\\assets\\towers.csv'
-        self.tower_stats = np.genfromtxt(file_name, delimiter=';', dtype=(int, int, float, float, "|U10", "|U10", "|U10"), skip_header=1)
+        self.tower_stats = np.genfromtxt(file_name, delimiter=';', dtype=("|U10", int, float, float, "|U15", "|U28"), skip_header=1)
 
         # Event Binders canvas_game
         self.canvas_game.bind('<Motion>', self.moved_mouse)
@@ -328,8 +331,9 @@ class Main():
     def redraw_tower(self):
         """ Rerandomizes selected towers"""
 
-        # Avoid redraw if not all cards are played
+        # Avoid redraw if not all cards are played or if no more draws
         if self.tile_counter != 4: return
+        if self.draws_current == 0: return
 
         iter = []
         for i, tile in enumerate(self.current_hand):
@@ -354,14 +358,62 @@ class Main():
             # self.play_sound('place_tower') # Tower redraw sound....
             self.update_tile_information(0, 0, tile=tile)
             self.update_tile_hand(pos=i)
-            self.determine_best_hand()
+        self.determine_best_hand()
+        self.draws_current -= 1
+        self.__update_draw_counter()
 
-    def build_tower(self):
+    def build_tower(self, override=False):
         """ Converts single towers to actual tower """
-        new_card = self.determine_best_hand(type=True)
-        print(new_card)
 
+        if self.tile_counter != 4 and not override: return
+        if self.current_wave_built: return
 
+        if override:
+            if len(self.current_hand) == 0: return
+            elif len(self.current_hand) < 5:
+                cards = []
+                for i in self.current_hand:
+                    cards.append(i.get_number())
+                card_type = '11_' + str(cards[self.__best_card_single(cards)])
+            else:
+                card_type = self.determine_best_hand(type=True)
+        else:
+            card_type = self.determine_best_hand(type=True)
+
+        x = self.current_hand[0].get_x()
+        y = self.current_hand[0].get_y()
+        
+        for tile in self.current_hand:
+            tile.remove_tower()
+            tile.deselect()
+        
+        for i in self.tower_stats:
+            if i[0] == card_type:
+                stats = i
+                break
+
+        self.current_board[x][y].set_tower(image='temp', 
+                                           number=stats[0],
+                                           suite=False,
+                                           name=stats[5],   
+                                           attack=stats[1], 
+                                           range=stats[2], 
+                                           speed=stats[3], 
+                                           ability=stats[4]
+                                           )
+
+        self.tile_counter = -1
+        self.odds_current = 0
+        self.current_hand.clear()
+
+        self.__reset_best_hand_position(new_turn=True)
+        self.__update_gold_counter()
+        self.current_wave_built = True
+
+        if self.turn_time_current < 0:
+            self.turn_time_current = 0
+            self.canvas_game.itemconfigure(self.timer_visual, text=str(self.turn_time_current))
+            self.new_wave()
 
     ## Game Board Functions
 
@@ -428,7 +480,7 @@ class Main():
         suite =  self.get_suite_number(self.current_hand[pos])
 
         self.canvas_info.itemconfigure(self.tile_info_hand_cards_values[pos], text=short_name)
-        self.canvas_info.itemconfigure(self.tile_info_hand_cards_suites[pos], image=self.tile_info_hand_symbol[suite])
+        self.canvas_info.itemconfigure(self.tile_info_hand_cards_suites[pos], image=self.tile_info_hand_symbol[suite], state='normal')
         
     def __create_tile_information(self):
 
@@ -646,17 +698,22 @@ class Main():
         playable_hand[8] = self.__n_of_a_kind(seen, 3)
         playable_hand[9] = self.__two_pairs(seen)
         playable_hand[10] = self.__n_of_a_kind(seen, 2)
-
-        full_hand = [0, 1, 2, 3, 5, 6, 7]
+        playable_hand[11] = 1
 
         for i, state in enumerate(playable_hand):
-            if state != 0:
-                if type: 
-                    
-                    
-                    
-                    return i
-                if i in full_hand:
+            
+            if type and state == 1: 
+                if i in [0, 2, 6]: number = self.get_suite_number(self.current_hand[0])
+                elif i == 1: number = cards[0]
+                elif i in [3, 5]: number = max(cards) # Full house doesnt print 3 type
+                elif i in [4, 8, 10]: number = dupes[0]
+                elif i in [5, 9]: number = max(dupes) # Doesnt set ace as high... [9]
+                else: number = cards[self.__best_card_single(cards)]
+                
+                return str(i) + '_' + str(number)
+
+            if state == 1:
+                if i in [0, 1, 2, 3, 5, 6, 7]:
                     self.__update_best_hand_position([0,1,2,3,4])
                     self.__update_best_hand_indicator()
                     self.play_sound('all_cards')
@@ -666,26 +723,6 @@ class Main():
                     return
         self.__update_best_hand_position([self.__best_card_single(cards)])
 
-    def __reset_best_hand_position(self):
-
-        for i in range(5):
-            self.canvas_info.coords(self.tile_info_hand_cards[i], 59*i, dimension_info_cards_y + 30 - 50)
-            self.canvas_info.coords(self.tile_info_hand_cards_values[i], 59*(i+1/2), dimension_info_cards_y + 70 - 50)
-            self.canvas_info.coords(self.tile_info_hand_cards_suites[i], 59*(i+1/2), dimension_info_cards_y + 128 - 50)
-        self.canvas_info.itemconfigure(self.tile_info_hand_all_cards, text='')
-
-    def __update_best_hand_indicator(self):
-        self.canvas_info.itemconfigure(self.tile_info_hand_all_cards, text='All Cards!')
-
-    def __update_best_hand_position(self, index):
-
-        self.__reset_best_hand_position()
-
-        for i in index:
-            self.canvas_info.move(self.tile_info_hand_cards[i], 0, -30)
-            self.canvas_info.move(self.tile_info_hand_cards_values[i], 0, -30)
-            self.canvas_info.move(self.tile_info_hand_cards_suites[i], 0, -30)
-            
     def __best_card_single(self, cards):
         """ Returns index of highest card, Ace, King, Queen.... """
         if 0 in cards: return cards.index(0)
@@ -755,9 +792,11 @@ class Main():
         """ converts from tile number '0, 1, ..., 11, 12' to 'A, 1, ... , Q, K' """
         number = tile.get_number()
         if number in [0, 10, 11, 12]:
-            return self.tower_stats[number][5][0]
+            for i in self.tower_stats:
+                if i[0] == '11_' + str(number):
+                    return i[5][0]
         else:
-            return str(number)
+            return str(number + 1)
 
     def __is_straigt(self, cards):
         """ Checks if straight returns T/F """
@@ -768,7 +807,7 @@ class Main():
         if new_cards[0] == 12 and new_cards[-1] == 0:
             new_cards.insert(0, 13)
 
-        for i in range(1, len(new_cards)-1):
+        for i in range(1, 5):
             if new_cards[i-1] - new_cards[i] != 1: return 0
         return 1
 
