@@ -26,7 +26,7 @@ class Tile:
         self.tower = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_tower, anchor=NW)
         self.suite_marker = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_suite_marker, anchor=NW)
         self.select = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_selected, anchor=NW, state='hidden')
-    
+
     def load_image(self, name):
         image_file = os.getcwd() + '\\art\\tower\\tile\\' + name + '.png' 
         return PhotoImage(file=image_file)
@@ -88,13 +88,13 @@ class Tile:
         self.selected = not self.selected
         self.highlight_tile(self.selected)
 
-    def attempt_fire(self):
+    def fire_count_down(self):
         self.speed_current += 1
-        if self.speed_current % self.speed == 0:
-            self.speed_current = 0
-            return True
-        else:
-            return False
+        if self.speed_current >= self.speed: return True
+        else: return False
+    
+    def fire_reset(self):
+        self.speed_current = 0
 
     def get_buildable(self):
         return self.buildable

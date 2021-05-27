@@ -38,7 +38,6 @@ class Main():
 
     def __init__(self):
 
-
         # Screen Settings
         self.root = Tk()
         self.root.winfo_toplevel().geometry("{}x{}".format(dimension_screen 
@@ -70,13 +69,6 @@ class Main():
         self.tile_current_marked = [-2,-2]
         self.tile_counter = -1
 
-        self.current_hand = []
-        self.current_towers = []
-        self.current_enemies = []
-        self.current_projectiles = []
-        self.tile_path_x = []
-        self.tile_path_y = []
-
         self.odds_base = 10
         self.odds_current = 0
 
@@ -86,12 +78,23 @@ class Main():
         self.turn_time_base = 10
         self.turn_time_current = self.turn_time_base
 
-        self.current_wave = 0
+        self.current_wave = 1
         self.current_wave_built = False
         self.wave_in_progress = False
 
         self.mobs_base = 10
-        self.mobs_current = self.mobs_base
+        self.mobs_current = 0
+
+        self.current_hand = []
+        self.current_towers = []
+        
+        self.current_enemies = np.empty(self.mobs_base, dtype=Enemy)
+        for i in range(self.mobs_base):
+            self.current_enemies[i] = Enemy(canvas=self.canvas_game, id=i)
+
+        self.current_projectiles = []
+        self.tile_path_x = []
+        self.tile_path_y = []
 
         # Sound
         self.sound_home_button = self.load_sound('home_screen')
@@ -99,6 +102,8 @@ class Main():
         self.sound_place_fail = self.load_sound('place_fail')
         self.sound_all_cards = self.load_sound('full_cards')
         self.sound_coin_use = self.load_sound('coin_use')
+
+        self.def_proj = self.load_image('standard', folder='projectile')
 
         # Game Files
         file_name = self.cwd + '\\assets\\towers.csv'
@@ -160,14 +165,19 @@ class Main():
     ## Background Items - Timers
 
     def start_timer(self):
-        threading.Timer(0.1, self.start_timer).start()
+        threading.Timer(0.05, self.start_timer).start()
         if self.state_game == 1:
+
             self.time_counter += 1
+
             if self.wave_in_progress:
-                self.game_update()
+                if self.time_counter%2 == 0:
+                    self.update_enemies()
                 self.shoot_enemies()
+                self.update_projectiles()
+            
             ## Every Second
-            if self.time_counter%10 == 0:
+            if self.time_counter%20 == 0:
                 if self.turn_time_current == 0:
                     if not self.wave_in_progress: self.new_wave()
                     else:
@@ -274,11 +284,15 @@ class Main():
         elif self.state_game == 1: self.select_tile(event)
 
     def left_click(self, event):
+
+        # print('---')
+        # print(event.x, event.y)
         if self.state_game == 0: self.home_button_functions()
         elif self.state_game == 1:
             x, y = self.find_tile(event)
             if self.check_tile(x, y):
-                1
+                tile = self.current_board[x][y]
+                # print(tile.get_x()*game_tile_width, tile.get_y()*game_tile_width)
                     
     def right_click(self, event):
         # Break out if not in game
@@ -416,7 +430,6 @@ class Main():
 
     def build_tower(self, override=False):
         """ Converts single towers to actual tower """
-
         if self.tile_counter != 4 and not override: return
         if self.current_wave_built: return
 
@@ -488,7 +501,9 @@ class Main():
 
         self.tower_radius_marker = self.canvas_game.create_oval(0,0,100,100, width=4, fill=None, state='hidden')
 
-        self.timer_visual = self.canvas_game.create_text(dimension_screen_border, dimension_screen_border, fill='White', anchor=NW, text=str(self.turn_time_base), font=('Dutch801 XBd BT', 28))
+        self.wave_counter_visual = self.canvas_game.create_text(dimension_screen_border, dimension_screen_border, fill='White', anchor=NW, text='Wave: {}'.format(self.current_wave), font=('Dutch801 XBd BT', 28))
+
+        self.timer_visual = self.canvas_game.create_text(dimension_screen_border, 3*dimension_screen_border, fill='White', anchor=NW, text=str(self.turn_time_base), font=('Dutch801 XBd BT', 28))
 
         self.state_game = 1
         self.__create_tile_information()
@@ -514,82 +529,97 @@ class Main():
         self.tile_path_x = np.array(self.tile_path_x)*game_tile_width + int(game_tile_width*0.5)
         self.tile_path_y = np.array(self.tile_path_y)*game_tile_width + int(game_tile_width*0.5)
 
-        for i, x in enumerate(self.tile_path_x):
-
-            self.canvas_game.create_text(x, self.tile_path_y[i], text=i)
+        # for i, x in enumerate(self.tile_path_x):
+        #     self.canvas_game.create_text(x, self.tile_path_y[i], text=i)
 
     def new_wave(self):
         
         self.wave_in_progress = True
-
         if not self.current_wave_built: self.build_tower(override=True)
-
         self.current_wave += 1
-        print('New Wave!')
+        self.draws_current = self.draws_base
+
+    def end_wave(self):
+
+        self.wave_in_progress = False
+        self.current_wave_built = False
+        self.turn_time_current = self.turn_time_base
+        self.mobs_current = 0
+        self.canvas_game.itemconfigure(self.wave_counter_visual, text='Wave: {}'.format(self.current_wave))
 
     def spawn_mobs(self):
         
-        if self.mobs_current > 0:
+        if self.mobs_current < self.mobs_base:
+
+            slime_img = self.load_image('slime', folder='enemies')
 
             goal = [self.tile_path_x[0], self.tile_path_y[0]]
-            self.current_enemies.append(Enemy(canvas=self.canvas_game, 
-                                    x=self.tile_path_x[0]-game_tile_width, y=self.tile_path_y[0], 
-                                    hp=30, speed=32, goal=goal, id=self.mobs_base - self.mobs_current))
-            self.mobs_current -= 1
+            self.current_enemies[self.mobs_current].reset_mob(x=self.tile_path_x[0]-game_tile_width, y=self.tile_path_y[0], 
+                                    hp=30, speed=8, goal=goal,image=slime_img)
+            self.mobs_current += 1
 
-    def game_update(self):
-
+    def update_projectiles(self):
         for i, e in enumerate(self.current_projectiles):
             hit, kill = e.move()
             if kill:
-                self.__change_gold(self.current_wave%10)
+                self.__change_gold(1)
                 self.remove_enemy(e.get_target())
             if hit: 
                 self.current_projectiles.pop(i)
                 e.remove()
-        
-        for e in self.current_enemies:
 
-            new_goal = e.move()
+    def update_enemies(self):
+
+        if self.wave_over(): return
+
+        for e in self.current_enemies:
             
-            if new_goal:
-                index = e.get_goal() + 1
-                if index == 75:
-                    self.__change_gold(-2*(self.current_wave%10))
-                    self.remove_enemy(e)
-                else:
-                    e.set_goal([self.tile_path_x[index], self.tile_path_y[index]])
+            if e.get_alive():
+                new_goal = e.move()
+                
+                if new_goal:
+                    index = e.get_goal() + 1
+                    if index == 75:
+                        self.__change_gold(-2)
+                        self.remove_enemy(e)
+                    else:
+                        e.set_goal([self.tile_path_x[index], self.tile_path_y[index]])
 
     def shoot_enemies(self):
 
-        if len(self.current_enemies) == 0: return
+        # Returns if no enemies have yet been spawned
+        if self.wave_over(): return
 
         mobs = self.get_enemy_locations()
-
         for tower in self.current_towers:
+            if tower.fire_count_down():
 
-            tower_pos = np.array([tower.get_x(), tower.get_y()])
-            tower_pos *= game_tile_width
-            tower_range = tower.get_range()*game_tile_width
+                tower_pos = np.array([tower.get_x() + 0.5, tower.get_y() + 0.5])
+                tower_pos *= game_tile_width
+                tower_range = tower.get_range()*game_tile_width
 
-            dist = np.linalg.norm(mobs - tower_pos, axis=1)
+                dist = np.linalg.norm(mobs - tower_pos, axis=1)
 
-            for i, distance in enumerate(dist):
-                if distance < tower_range:
-                    self.fire(tower, self.current_enemies[i])
+                for i, distance in enumerate(dist):
+                    if distance < tower_range and self.current_enemies[i].get_alive():
+                        self.fire(tower, self.current_enemies[i])
+                        break
 
     def remove_enemy(self, enemy):
-        enemy_index = self.find_enemy(enemy.get_id())
-        self.current_enemies.pop(enemy_index)
         enemy.remove()
+        if self.wave_over():
+            for e in self.current_projectiles:
+                e.remove()
+            self.end_wave()
 
-    def find_enemy(self, id):
-
-        for i, e in enumerate(self.current_enemies):
-            if e.get_id() == id: 
-                return i
+    def wave_over(self):
+        """ Returns true if all enemies are not beaten/fled """
         
-        1
+        if self.mobs_current > self.mobs_base: return False
+
+        for e in self.current_enemies:
+            if e.get_alive(): return False
+        return True
 
     def get_enemy_locations(self):
 
@@ -603,9 +633,8 @@ class Main():
         return pos_mobs
 
     def fire(self, tower, enemy):
-        if tower.attempt_fire():
-            self.current_projectiles.append(Projectile(canvas=self.canvas_game, x=int((tower.get_x()+0.5)*game_tile_width), y=int((tower.get_y()+0.5)*game_tile_width), damage=tower.get_damage(), speed=12, target=enemy))
-
+        self.current_projectiles.append(Projectile(canvas=self.canvas_game, x=int((tower.get_x()+0.5)*game_tile_width), y=int((tower.get_y()+0.5)*game_tile_width), damage=tower.get_damage(), speed=16, target=enemy, image=self.def_proj))
+        tower.fire_reset()
 
     ## Tile Information Functions
 
@@ -806,6 +835,7 @@ class Main():
 
     def __change_gold(self, amount):
         self.current_gold += amount
+        self.play_sound('coin_use')
         if self.current_gold <= 0:
             print('Game Over!')
         self.__update_gold_counter()
@@ -819,7 +849,6 @@ class Main():
         
         self.odds_current += 2
         self.__change_gold(-10)
-        self.play_sound('coin_use')
 
     def increase_draws(self):
         if not self.wave_in_progress: return
@@ -830,8 +859,7 @@ class Main():
 
         self.draws_current += 1
         self.__change_gold(-30)
-        self.play_sound('coin_use')
-        
+        self.__update_draw_counter()
 
     ## Determine Current Hand
 
