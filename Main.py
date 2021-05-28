@@ -108,7 +108,7 @@ class Main():
 
         # Game Files
         file_name = self.cwd + '\\assets\\towers.csv'
-        self.tower_stats = np.genfromtxt(file_name, delimiter=';', dtype=("|U10", int, float, float, "|U15", "|U28"), skip_header=1)
+        self.tower_stats = np.genfromtxt(file_name, delimiter=';', dtype=("|U10", int, int, float, float, "|U15", "|U28"), skip_header=1)
 
         # Event Binders canvas_game
         self.canvas_game.bind('<Motion>', self.moved_mouse)
@@ -352,11 +352,7 @@ class Main():
 
     def get_card_name(self, suite, number):
         """ Returns expected name of single tower """
-        return str(self.tower_stats[number][5])+' of '+suite.capitalize()+'s'
-
-    def get_card_short_name(self, number):
-        """ Returns short_name of tower, i.e. Ace = A """
-        return str(self.tower_stats[number][6])
+        return str(self.tower_stats[number][6])+' of '+suite.capitalize()+'s'
 
     def place_tower(self, event):
         """ Attempts to create tower at mouse clicked tile """
@@ -372,17 +368,16 @@ class Main():
                     self.play_sound('place_fail')
                     return
 
-                suite_num, number = self.gen_card()
-                suite = card_suite[suite_num]
+                stats = self.find_tower(self.gen_card())
 
-                tile.set_tower(image=str(suite_num) + '_' + str(number), 
-                                number=number,
-                                name=self.get_card_name(suite, number), 
-                                suite=suite,   
-                                attack=self.tower_stats[number][1], 
-                                range=self.tower_stats[number][2], 
-                                speed=self.tower_stats[number][3], 
-                                ability=self.tower_stats[number][4]
+                tile.set_tower( 
+                               number=stats[0],
+                               name=stats[6],   
+                               attack_min=stats[1], 
+                               attack_max=stats[2],
+                               range=stats[3], 
+                               speed=stats[4], 
+                               ability=stats[5]
                                 )
 
                 self.tile_counter += 1
@@ -410,18 +405,17 @@ class Main():
         for i in iter:
             tile = self.current_hand[i]
 
-            suite_num, number = self.gen_card()
-            suite = card_suite[suite_num]
+            stats = self.find_tower(self.gen_card())
 
-            tile.set_tower(image=str(suite_num) + '_' + str(number), 
-                           number=number,
-                           name=self.get_card_name(suite, number), 
-                           suite=suite,   
-                           attack=self.tower_stats[number][1], 
-                           range=self.tower_stats[number][2], 
-                           speed=self.tower_stats[number][3], 
-                           ability=self.tower_stats[number][4]
-                           )
+            tile.set_tower( 
+                number=stats[0],
+                name=stats[6],   
+                attack_min=stats[1], 
+                attack_max=stats[2],
+                range=stats[3], 
+                speed=stats[4], 
+                ability=stats[5]
+            )
             
             # self.play_sound('place_tower') # Tower redraw sound....
             self.update_tile_information(0, 0, tile=tile)
@@ -430,22 +424,19 @@ class Main():
         self.draws_current -= 1
         self.__update_draw_counter()
 
+    def find_tower(self, card_type):
+        for i in self.tower_stats:
+            if i[0] == card_type:
+                return i
+                break
+
     def build_tower(self, override=False):
         """ Converts single towers to actual tower """
         if self.tile_counter != 4 and not override: return
         if self.current_wave_built: return
 
-        if override:
-            if len(self.current_hand) == 0: return
-            elif len(self.current_hand) < 5:
-                cards = []
-                for i in self.current_hand:
-                    cards.append(i.get_number())
-                card_type = '11_' + str(cards[self.__best_card_single(cards)])
-            else:
-                card_type = self.determine_best_hand(type=True)
-        else:
-            card_type = self.determine_best_hand(type=True)
+        if override and len(self.current_hand) == 0: return
+        card_type = self.determine_best_hand(type=True)
 
         x = self.current_hand[0].get_x()
         y = self.current_hand[0].get_y()
@@ -454,19 +445,16 @@ class Main():
             tile.remove_tower()
             tile.deselect()
         
-        for i in self.tower_stats:
-            if i[0] == card_type:
-                stats = i
-                break
-
+        stats = self.find_tower(card_type)
+        
         self.current_board[x][y].set_tower(                                         
                                            number=stats[0],
-                                           suite=False,
-                                           name=stats[5],   
-                                           attack=stats[1], 
-                                           range=stats[2], 
-                                           speed=stats[3], 
-                                           ability=stats[4]
+                                           name=stats[6],   
+                                           attack_min=stats[1], 
+                                           attack_max=stats[2],
+                                           range=stats[3], 
+                                           speed=stats[4], 
+                                           ability=stats[5]
                                            )
 
         self.tile_counter = -1
@@ -540,6 +528,7 @@ class Main():
         if not self.current_wave_built: self.build_tower(override=True)
         self.current_wave += 1
         self.draws_current = self.draws_base
+        self.__update_draw_counter()
 
     def end_wave(self):
 
@@ -557,7 +546,7 @@ class Main():
 
             goal = [self.tile_path_x[0], self.tile_path_y[0]]
             self.current_enemies[self.mobs_current].reset_mob(x=self.tile_path_x[0]-game_tile_width, y=self.tile_path_y[0], 
-                                    hp=30, speed=8, goal=goal,image=slime_img)
+                                    hp=150, speed=8, goal=goal,image=slime_img)
             self.mobs_current += 1
 
     def update_projectiles(self):
@@ -603,7 +592,7 @@ class Main():
                 dist = np.linalg.norm(mobs - tower_pos, axis=1)
 
                 for i, distance in enumerate(dist):
-                    if distance < tower_range and self.current_enemies[i].get_alive():
+                    if distance <= tower_range and self.current_enemies[i].get_alive():
                         self.fire(tower, self.current_enemies[i])
                         break
 
@@ -660,7 +649,7 @@ class Main():
             pos = self.tile_counter
 
         short_name = self.get_short_name(self.current_hand[pos])
-        suite =  self.get_suite_number(self.current_hand[pos])
+        suite = self.current_hand[pos].get_suite_number()
 
         self.canvas_info.itemconfigure(self.tile_info_hand_cards_values[pos], text=short_name)
         self.canvas_info.itemconfigure(self.tile_info_hand_cards_suites[pos], image=self.tile_info_hand_symbol[suite], state='normal')
@@ -784,7 +773,7 @@ class Main():
         # Attempts to increase likelyhood that all further cards are of the same suite
         weights = np.ones(4)*self.odds_base
         if self.tile_counter >= 0:
-            current_suite = self.get_suite_number(self.current_hand[0])
+            current_suite = self.current_hand[0].get_suite_number()
             weights[current_suite] += self.odds_current
         weights *= 1 / np.sum(weights)
         suite_num = np.random.choice([0, 1, 2, 3], p=weights)
@@ -793,14 +782,14 @@ class Main():
         weights = np.ones(13)*self.odds_base
         if self.tile_counter >= 0:
             for tile in self.current_hand:
-                i = tile.get_number()
+                i = tile.get_card_number()
                 weights[i] += self.odds_current
                 weights[(i+1)%13] += self.odds_current/2
                 weights[(i-1)%13] += self.odds_current/2
         weights *= 1 / np.sum(weights)
         number = np.random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], p=weights)
 
-        return suite_num, number
+        return str(suite_num) + '_11_' + str(number)
 
     def __reset_best_hand_position(self, new_turn=False):
 
@@ -867,7 +856,7 @@ class Main():
 
     def determine_best_hand(self, type=False):
         cards = []
-        for tile in self.current_hand: cards.append(tile.get_number())
+        for tile in self.current_hand: cards.append(tile.get_card_number())
         seen, dupes = self.__best_card_multiple(cards)
 
         playable_hand = [0 for i in range(12)]
@@ -890,12 +879,14 @@ class Main():
         for i, state in enumerate(playable_hand):
             
             if type and state == 1: 
-                if i in [0, 2, 6]: number = self.get_suite_number(self.current_hand[0])
+                if i in [0, 2, 6]: number = self.current_hand[0].get_suite_number()
                 elif i == 1: number = cards[0]
                 elif i in [3, 5]: number = max(cards) # Full house doesnt print 3 type
                 elif i in [4, 8, 10]: number = dupes[0]
                 elif i in [5, 9]: number = max(dupes) # Doesnt set ace as high... [9]
-                else: number = cards[self.__best_card_single(cards)]
+                else: 
+                    number = self.__best_card_single(cards)
+                    return str(self.current_hand[number].get_suite_number()) + '_' + str(i) + '_' + str(cards[number])
                 
                 return str(i) + '_' + str(number)
 
@@ -964,24 +955,18 @@ class Main():
         """ Checks if flush returns T/F """
         if self.tile_counter < 4: return 0
 
-        suite = self.get_suite_number(self.current_hand[0])
+        suite = self.current_hand[0].get_suite_number()
         for i in range(1, len(self.current_hand)):
-            if suite != self.get_suite_number(self.current_hand[i]): return 0
+            if suite != self.current_hand[i].get_suite_number(): return 0
         return 1
     
-    def get_suite_number(self, tile):
-        """ converts from tile suite 'heart, spade...' to '0, 1...' """
-        tile_suite = tile.get_suite()
-        for i, suite in enumerate(card_suite):
-            if suite == tile_suite: return i
-    
     def get_short_name(self, tile):
-        """ converts from tile number '0, 1, ..., 11, 12' to 'A, 1, ... , Q, K' """
-        number = tile.get_number()
+        """ converts from tile number '0, 1, ..., 11, 12' to 'A, 2, ... , Q, K' """
+        number = tile.get_card_number()
         if number in [0, 10, 11, 12]:
             for i in self.tower_stats:
-                if i[0] == '11_' + str(number):
-                    return i[5][0]
+                if i[0] == '0_11_' + str(number):
+                    return i[6][0]
         else:
             return str(number + 1)
 
