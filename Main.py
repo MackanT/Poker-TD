@@ -1,5 +1,6 @@
 
 from tkinter import *
+import PIL
 import threading
 import numpy as np
 from assets.UI import *
@@ -134,15 +135,16 @@ class Main():
 
     ## Load Images + Sound
 
-    def load_image(self, file_name, tile=True, folder=None):
+    def load_image(self, file_name, dim=None, dims=None, folder='tower\\tile'):
 
-        if folder:
-            f = self.cwd + '\\art\\' + folder + '\\' + file_name + '.png'
-        elif tile:
-            f = self.cwd + '\\art\\tower\\tile\\' + file_name + '.png'
-        else:
-            f = self.cwd + '\\art\\tower\\thumbnail\\' + file_name + '.png'
-        return PhotoImage(file=f)    
+        f = self.cwd + '\\art\\' + folder + '\\' + file_name + '.png'
+        image = PIL.Image.open(f)
+        if dim:
+            if dims != None:
+                image = image.resize((dims[0], dims[1]), PIL.Image.NEAREST)
+            else:
+                image = image.resize((dim, dim), PIL.Image.NEAREST)
+        return PIL.ImageTk.PhotoImage(image)
 
     def load_sound(self, file_name):
         """ loads specified sound file as wave object """
@@ -457,7 +459,7 @@ class Main():
                 stats = i
                 break
 
-        self.current_board[x][y].set_tower(image='temp', 
+        self.current_board[x][y].set_tower(                                         
                                            number=stats[0],
                                            suite=False,
                                            name=stats[5],   
@@ -643,7 +645,7 @@ class Main():
             tile = self.get_tile(x,y)
 
         img = tile.get_image()
-        self.info_tile_image_file = self.load_image(img, tile=False)
+        self.info_tile_image_file = self.load_image(img, dim=256)
         self.canvas_info.itemconfig(self.info_tile_image, 
                                     image=self.info_tile_image_file)
         self.canvas_info.itemconfig(self.info_tile_name, text=tile.get_name())
