@@ -350,3 +350,5 @@ MigrationBackup/
 .ionide/
 
 font_tester.py
+
+TD-help_stats.xlsx
