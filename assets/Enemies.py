@@ -1,6 +1,9 @@
-from shutil import move
 from tkinter import *
+from PIL import Image, ImageTk
+import numpy as np
 import os
+
+from numpy import random
 
 class Enemy:
     """ canvas, x_pos, y_pos, enemy hp, enemy speed, enemy movement goal
@@ -13,21 +16,29 @@ class Enemy:
         self.hp = 100
         self.hp_max = 100
         self.speed = 0
+        self.ability = None
+        self.armor = 100
+        self.name = ''
         self.goal = None
         self.goal_index = 0
         self.id = id
         self.is_alive = False
+        self.tick_cooldown = 0
 
-    def reset_mob(self, x=None, y=None, hp=None, speed=None, goal=None, image=None):
+    def reset_mob(self, x=None, y=None, hp=None, speed=None, goal=None, armor=None, ability=None, name=None, image=None):
         self.x = x
         self.y = y
         self.hp_max = hp
         self.hp = hp
         self.speed = speed
+        self.armor = armor
+        self.ability = ability
+        self.name = name
         self.goal = goal
         self.image = image
         self.goal_index = 0
         self.is_alive = True
+        self.ticks = 0
         
         self.shape = self.canvas.create_image(self.x, self.y, image=self.image)
         self.hp_bar = self.canvas.create_rectangle(self.x-15, self.y+40, self.x+15, self.y+35, fill='blue', state='hidden')
@@ -58,12 +69,12 @@ class Enemy:
         self.hp -= damage
         self.canvas.itemconfig(self.hp_bar, state='normal')
         self.update_hp_bar()
+        self.tick_cooldown = 0
         if self.hp <= 0:
             return True
         else: return False
 
     def update_hp_bar(self):
-        
         # 15 = size of "one side" of full hp bar
         size = int(self.hp / self.hp_max * 15)
         self.canvas.coords(self.hp_bar, self.x-size, self.y+40, self.x+size, self.y+35)
@@ -84,14 +95,25 @@ class Enemy:
         
     def move(self):
 
-        if self.goal == None: return False
+        if self.goal == None: 
+            print('da')
+            return False
+
+        self.ticks += 1
+
+        # Hide hp_bar
+        self.tick_cooldown +=1
+        if self.tick_cooldown > 25:
+            self.canvas.itemconfig(self.hp_bar, state = 'hidden')
 
         dir_x0, dir_y0 = self.__get_dir()
 
         move_x = dir_x0*self.speed
         move_y = dir_y0*self.speed
 
-        self.canvas.move(self.shape, move_x, move_y)
+        sin_y = np.sin(self.ticks)*5
+
+        self.canvas.move(self.shape, move_x, move_y+sin_y)
         self.canvas.move(self.hp_bar, move_x, move_y)
 
         self.x += move_x
