@@ -14,26 +14,61 @@ class Tile:
         self.w = w
         self.path = False
 
-        self.tile_color = 'red'
+        self.tile_color = 'green'
         
         # Tower Variables
         self.remove_tower(update=False)
 
         self.img_selected = self.load_image('selector')
-        self.img_tile = self.load_image('tile_felt_' + self.tile_color)
+        self.img_tile = self.load_image('tile_' + self.tile_color)
 
         self.tile = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_tile, anchor=NW)
         self.tower = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_tower, anchor=NW)
         self.select = self.canvas.create_image(self.x*self.w, self.y*self.w, image=self.img_selected, anchor=NW, state='hidden')
 
     def load_image(self, name):
+        if name.count('_') == 2:
+
+            number = self.get_card_number()
+            suite = self.get_suite_number()
+
+            if number > 0 and number < 10: name = 'single_1_' + str(suite)
+            else: name = 'single_' + str(number) + '_' + str(suite)
+            bg = os.getcwd() + '\\art\\tower\\tile\\' + name + '.png' 
+            
+            if suite == 0 or suite == 2: name = 'red_' + str(number) 
+            else: name = 'black_' + str(number)
+            fg = os.getcwd() + '\\art\\tower\\indicator\\' + name + '.png' 
+
+            bg = Image.open(bg)
+            fg = Image.open(fg)
+
+            bg.paste(fg, (22, 1))
+            bg = bg.resize((64,64), Image.NEAREST)
+
+            return ImageTk.PhotoImage(bg)
+
+        if name[0:3] == '10_': name = 'pair'
+        elif name[0:2] == '9_': name = 'two_pair'
+        elif name[0:2] == '8_': name = 'three_kind'
+        elif name[0:2] == '7_': name = 'pair'
+        elif name[0:2] == '6_': name = 'pair'
+        elif name[0:2] == '5_': name = 'pair'
+        elif name[0:2] == '4_': name = 'pair'
+        elif name[0:2] == '3_': name = 'pair'
+        elif name[0:2] == '2_': name = 'pair'
+        elif name[0:2] == '1_': name = 'pair'
+        
+
+
         image_file = os.getcwd() + '\\art\\tower\\tile\\' + name + '.png' 
-        image = Image.open(image_file)
-        image = image.resize((64,64), Image.NEAREST)
-        return ImageTk.PhotoImage(image)
+        bg = Image.open(image_file)
+        bg = bg.resize((64,64), Image.NEAREST)
+
+        return ImageTk.PhotoImage(bg)
 
     def set_path(self):
-        self.image_name = 'tile_felt_white'
+        self.image_name = 'tile_white'
         self.name = 'Felt Path'
         self.attack_min = ''
         self.range = ''
@@ -49,8 +84,6 @@ class Tile:
         self.number = number # Ace = 0, King = 12
 
         self.image_name = number
-        # Make shift images for all "non-standard" towers
-        if len(number) < 5: self.image_name = 'temporary'
         self.img_tower = self.load_image(self.image_name)
         self.canvas.itemconfig(self.tower, image=self.img_tower)
         self.attack_min = attack_min
@@ -62,7 +95,7 @@ class Tile:
         self.buildable = False
 
     def remove_tower(self, update=True):
-        self.image_name = 'tile_felt_' + self.tile_color
+        self.image_name = 'tile_' + self.tile_color
         self.img_tower = self.load_image('blank')
         if update: 
             self.canvas.itemconfig(self.tower, image=self.img_tower)
@@ -124,11 +157,11 @@ class Tile:
         return self.number
     
     def get_card_number(self):
-        ___, ___, i = self.number.split('_')
+        i = self.number.split('_')[2]
         return int(i)
     
     def get_suite_number(self):
-        i, ___, ___ = self.number.split('_')
+        i = self.number.split('_')[0]
         return int(i)
 
     def get_stats(self):
