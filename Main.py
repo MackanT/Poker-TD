@@ -1,5 +1,5 @@
-
-from tkinter import *
+from tkinter import Tk, Canvas, Button
+from PIL import ImageGrab
 import PIL
 import threading
 import numpy as np
@@ -138,15 +138,25 @@ class Main():
 
     ## Load Images + Sound
 
-    def load_image(self, file_name, dim=None, dims=None, folder='tower\\tile'):
+    def load_image(self, file_name, dim=None, folder='tower\\tile', capture=None):
+
+        if capture != None:  
+
+            # 8 and 31 are aquired through testing
+            dx = self.root.winfo_x() + self.canvas_game.winfo_x() + 8
+            dy = self.root.winfo_y() + self.canvas_game.winfo_y() + 31
+            x = capture.get_x()*game_tile_width + dx
+            y = capture.get_y()*game_tile_width + dy
+
+            image = ImageGrab.grab(bbox =(x, y, x+game_tile_width, y+game_tile_width), all_screens=True)
+            if dim:
+                image = image.resize((dim, dim), PIL.Image.NEAREST)
+            return PIL.ImageTk.PhotoImage(image)
 
         f = self.cwd + '\\art\\' + folder + '\\' + file_name + '.png'
         image = PIL.Image.open(f)
         if dim:
-            if dims != None:
-                image = image.resize((dims[0], dims[1]), PIL.Image.NEAREST)
-            else:
-                image = image.resize((dim, dim), PIL.Image.NEAREST)
+            image = image.resize((dim, dim), PIL.Image.NEAREST)
         return PIL.ImageTk.PhotoImage(image)
 
     def load_sound(self, file_name):
@@ -650,7 +660,7 @@ class Main():
             tile = self.get_tile(x,y)
 
         img = tile.get_image()
-        self.info_tile_image_file = self.load_image(img, dim=256)
+        self.info_tile_image_file = self.load_image(img, dim=256, capture=tile)
         self.canvas_info.itemconfig(self.info_tile_image, 
                                     image=self.info_tile_image_file)
         self.canvas_info.itemconfig(self.info_tile_name, text=tile.get_name())
@@ -786,6 +796,8 @@ class Main():
 
     def gen_card(self):
 
+
+        print(self.odds_current)
         # Attempts to increase likelyhood that all further cards are of the same suite
         weights = np.ones(4)*self.odds_base
         if self.tile_counter >= 0:
