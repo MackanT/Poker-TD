@@ -536,17 +536,26 @@ class Main():
         self.current_wave_built = False
         self.turn_time_current = self.turn_time_base
         self.mobs_current = 0
-        self.canvas_game.itemconfigure(self.wave_counter_visual, text='Wave: {}'.format(self.current_wave))
+        self.canvas_game.itemconfigure(self.wave_counter_visual, text='Wave: {}'.format(self.current_wave+1))
 
     def spawn_mobs(self):
         
         if self.mobs_current < self.mobs_base:
 
             slime_img = self.load_image('slime', folder='enemies')
-
             goal = [self.tile_path_x[0], self.tile_path_y[0]]
-            self.current_enemies[self.mobs_current].reset_mob(x=self.tile_path_x[0]-game_tile_width, y=self.tile_path_y[0], 
-                                    hp=150, speed=8, goal=goal,image=slime_img)
+            self.current_enemies[self.mobs_current].reset_mob(
+                    x=self.tile_path_x[0]-game_tile_width, 
+                    y=self.tile_path_y[0], 
+                    hp=self.enemy_stats[self.current_wave][1], 
+                    armor=self.enemy_stats[self.current_wave][2], 
+                    speed=self.enemy_stats[self.current_wave][3], 
+                    ability=self.enemy_stats[self.current_wave][4], 
+                    name=self.enemy_stats[self.current_wave][5], 
+                    goal=goal,
+                    image=slime_img
+                    )
+
             self.mobs_current += 1
 
     def update_projectiles(self):
