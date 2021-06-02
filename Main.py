@@ -103,12 +103,15 @@ class Main():
         self.sound_place_fail = self.load_sound('place_fail')
         self.sound_all_cards = self.load_sound('full_cards')
         self.sound_coin_use = self.load_sound('coin_use')
+        self.sound_fire = self.load_sound('fire')
 
-        self.def_proj = self.load_image('standard', folder='projectile')
+        # self.sound_back = self.load_sound('back_test')
 
         # Game Files
         file_name = self.cwd + '\\assets\\towers.csv'
         self.tower_stats = np.genfromtxt(file_name, delimiter=';', dtype=("|U10", int, int, float, float, "|U15", "|U28"), skip_header=1)
+        file_name = self.cwd + '\\assets\\enemies.csv'
+        self.enemy_stats = np.genfromtxt(file_name, delimiter=';', dtype=(int, int, int, float, "|U15", "|U28"), skip_header=1)
 
         # Event Binders canvas_game
         self.canvas_game.bind('<Motion>', self.moved_mouse)
@@ -163,6 +166,8 @@ class Main():
             self.sound_all_cards.play()
         elif file_name == 'coin_use':
             self.sound_coin_use.play()
+        elif file_name == 'fire':
+            self.sound_fire.play()
 
     ## Background Items - Timers
 
@@ -187,6 +192,8 @@ class Main():
                 else:   
                     self.turn_time_current -= 1
                     self.canvas_game.itemconfigure(self.timer_visual, text=str(self.turn_time_current))
+            # if self.time_counter%(20*14) == 0:
+            #     self.sound_back.play()
 
     def reset_timer(self):
         self.turn_time_current = self.turn_time_base
