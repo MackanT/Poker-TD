@@ -9,6 +9,7 @@ from assets.Enemies import Enemy, Projectile
 import simpleaudio as sa
 import csv
 import os
+import time as tm
 
 # Game Design Dimensions
 
@@ -76,10 +77,10 @@ class Main():
         self.draws_base = 1
         self.draws_current = self.draws_base
 
-        self.turn_time_base = 10
+        self.turn_time_base = 30
         self.turn_time_current = self.turn_time_base
 
-        self.current_wave = 1
+        self.current_wave = -1
         self.current_wave_built = False
         self.wave_in_progress = False
 
@@ -107,7 +108,7 @@ class Main():
 
         # self.sound_back = self.load_sound('back_test')
 
-        self.projectile_names = ['red', 'green', 'yellow', 'blue']
+        self.projectile_names = ['red', 'green', 'yellow', 'blue', 'arrow']
         
 
         # Game Files
@@ -511,7 +512,7 @@ class Main():
 
         self.tower_radius_marker = self.canvas_game.create_oval(0,0,100,100, width=4, fill=None, state='hidden')
 
-        self.wave_counter_visual = self.canvas_game.create_text(dimension_screen_border, dimension_screen_border, fill='White', anchor=NW, text='Wave: {}'.format(self.current_wave), font=('Dutch801 XBd BT', 28))
+        self.wave_counter_visual = self.canvas_game.create_text(dimension_screen_border, dimension_screen_border, fill='White', anchor=NW, text='Wave: {}'.format(self.current_wave+1), font=('Dutch801 XBd BT', 28))
 
         self.timer_visual = self.canvas_game.create_text(dimension_screen_border, 3*dimension_screen_border, fill='White', anchor=NW, text=str(self.turn_time_base), font=('Dutch801 XBd BT', 28))
 
@@ -610,6 +611,8 @@ class Main():
         # Returns if no enemies have yet been spawned
         if self.wave_over(): return
 
+        time = tm.time()
+
         mobs = self.get_enemy_locations()
         for tower in self.current_towers:
             if tower.fire_count_down():
@@ -624,6 +627,10 @@ class Main():
                     if distance <= tower_range and self.current_enemies[i].get_alive():
                         self.fire(tower, self.current_enemies[i])
                         break
+        
+        n_t = tm.time() - time
+        if n_t != 0:
+            print(n_t)
 
     def remove_enemy(self, enemy):
         enemy.remove()
@@ -653,7 +660,8 @@ class Main():
         return pos_mobs
 
     def fire(self, tower, enemy):
-        num = np.random.randint(0,4)
+        # num = np.random.randint(0,4)
+        num = 4
         self.current_projectiles.append(Projectile(
                             canvas=self.canvas_game, 
                             x=int((tower.get_x()+0.5)*game_tile_width), 
@@ -661,7 +669,8 @@ class Main():
                             damage=tower.get_damage(), 
                             speed=24, 
                             target=enemy, 
-                            image='proj_' + self.projectile_names[num])
+                            image='proj_' + self.projectile_names[num],
+                            homing=True)
                             )
         self.play_sound('fire')
         tower.fire_reset()

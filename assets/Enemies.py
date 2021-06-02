@@ -4,6 +4,7 @@ import numpy as np
 import os
 
 from numpy import random
+from numpy.core.fromnumeric import ptp
 
 class Enemy:
     """ canvas, x_pos, y_pos, enemy hp, enemy speed, enemy movement goal
@@ -128,7 +129,7 @@ class Projectile:
     """ canvas, x_pos, y_pos, amount of damage, speed of projectile [px], enemy target
     """
 
-    def __init__(self, canvas=None, x=None, y=None, damage=None, speed=None, target=None, image=None):
+    def __init__(self, canvas=None, x=None, y=None, damage=None, speed=None, target=None, image=None, homing=False):
         self.canvas = canvas
         self.x = x
         self.y = y
@@ -136,32 +137,50 @@ class Projectile:
         self.speed = speed
         self.target = target
         self.goal_index = 0
-        self.size = 10
-        self.age = 20
+        self.size = 10 #Projectile boundary box radius
+        self.age = 20 #Projectile life length num. ticks
         self.image_name = image
+        self.homing = homing
 
         self.image = self.load_image()
         self.shape = self.canvas.create_image(self.x, self.y, image=self.image)
+        self.rotate_image()
 
     def get_target(self):
         return self.target
     
-    def load_image(self, raw=True):
+    def load_image(self, resize=None, raw=True):
         image_file = os.getcwd() + '\\art\\projectile\\' + self.image_name + '.png' 
         image = Image.open(image_file)
-        dim = image.size[0] - (self.age)*2
-        image = image.resize((64,64), Image.NEAREST)
+        if resize != None:
+            image = image.resize((resize,resize), Image.NEAREST)
         if raw: return ImageTk.PhotoImage(image)
         else: return image
 
-    def rotate_image(self, angle):
-        img = self.load_image(raw=False)
-        dim = img.size[0] - (self.age)*2
-        self.image = ImageTk.PhotoImage(img.rotate(angle).resize((dim,dim), Image.NEAREST))
-        self.canvas.itemconfig(self.shape, image=self.image)
+    def rotate_image(self):
+
+        if self.homing:
+
+            img = self.load_image(raw=False)
+
+            # Angle between projectile and target in degrees
+            angle = np.arctan2(self.target.get_y() - self.y, 
+                               self.target.get_x() - self.x)*180/np.pi
+
+            self.image = ImageTk.PhotoImage(img.rotate(angle=-angle))
+            self.canvas.itemconfig(self.shape, image=self.image)
+
+        else:
+            img = self.load_image(raw=False)
+            self.image = ImageTk.PhotoImage(img.rotate(self.age*15%360, Image.NEAREST))
+            self.canvas.itemconfig(self.shape, image=self.image)
 
     def remove(self):
         self.canvas.delete(self.shape)
+
+    def dist_to_target(self):
+        return ((self.x-self.target.get_x())**2
+                + (self.y-self.target.get_y())**2)**0.5
 
     def move(self):
         
@@ -171,10 +190,6 @@ class Projectile:
 
         if not self.target: return True, False
         if not self.target.get_alive(): return True, False
-
-        if ((self.x-self.target.get_x())**2+(self.y-self.target.get_y())**2)**0.5 < self.size:
-            unit_killed = self.target.do_damage(self.damage)
-            return True, unit_killed
 
         delta_x = self.target.get_x() - self.x
         delta_y = self.target.get_y() - self.y
@@ -191,7 +206,11 @@ class Projectile:
 
         self.x += move_x
         self.y += move_y
-
-        self.rotate_image(self.age*15%360)
+        
+        if self.dist_to_target() < self.size:
+            unit_killed = self.target.do_damage(self.damage)
+            return True, unit_killed
+        else:
+            self.rotate_image()
 
         return False, False
