@@ -11,6 +11,11 @@ import csv
 import os
 import time as tm
 
+    # time = tm.time()
+    # n_t = tm.time() - time
+    # if n_t != 0:
+        # print(n_t)
+
 # Game Design Dimensions
 
 dimension_screen_attempt = 1000 # Dimension game will try to achieve
@@ -611,8 +616,6 @@ class Main():
         # Returns if no enemies have yet been spawned
         if self.wave_over(): return
 
-        time = tm.time()
-
         mobs = self.get_enemy_locations()
         for tower in self.current_towers:
             if tower.fire_count_down():
@@ -627,10 +630,6 @@ class Main():
                     if distance <= tower_range and self.current_enemies[i].get_alive():
                         self.fire(tower, self.current_enemies[i])
                         break
-        
-        n_t = tm.time() - time
-        if n_t != 0:
-            print(n_t)
 
     def remove_enemy(self, enemy):
         enemy.remove()
@@ -820,8 +819,6 @@ class Main():
 
     def gen_card(self):
 
-
-        print(self.odds_current)
         # Attempts to increase likelyhood that all further cards are of the same suite
         weights = np.ones(4)*self.odds_base
         if self.tile_counter >= 0:

@@ -142,38 +142,32 @@ class Projectile:
         self.image_name = image
         self.homing = homing
 
-        self.image = self.load_image()
+        self.image_raw = self.load_image()
+        self.image = ImageTk.PhotoImage(self.image_raw)
         self.shape = self.canvas.create_image(self.x, self.y, image=self.image)
         self.rotate_image()
 
     def get_target(self):
         return self.target
     
-    def load_image(self, resize=None, raw=True):
+    def load_image(self, resize=None):
         image_file = os.getcwd() + '\\art\\projectile\\' + self.image_name + '.png' 
         image = Image.open(image_file)
         if resize != None:
             image = image.resize((resize,resize), Image.NEAREST)
-        if raw: return ImageTk.PhotoImage(image)
-        else: return image
+        return image
 
     def rotate_image(self):
 
         if self.homing:
-
-            img = self.load_image(raw=False)
-
             # Angle between projectile and target in degrees
             angle = np.arctan2(self.target.get_y() - self.y, 
                                self.target.get_x() - self.x)*180/np.pi
-
-            self.image = ImageTk.PhotoImage(img.rotate(angle=-angle))
-            self.canvas.itemconfig(self.shape, image=self.image)
-
+            self.image = ImageTk.PhotoImage(self.image_raw.rotate(angle=-angle))
         else:
-            img = self.load_image(raw=False)
-            self.image = ImageTk.PhotoImage(img.rotate(self.age*15%360, Image.NEAREST))
-            self.canvas.itemconfig(self.shape, image=self.image)
+            self.image = ImageTk.PhotoImage(self.image_raw.rotate(angle=-self.age*15%360))
+        
+        self.canvas.itemconfig(self.shape, image=self.image)
 
     def remove(self):
         self.canvas.delete(self.shape)
