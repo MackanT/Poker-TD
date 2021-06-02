@@ -107,6 +107,9 @@ class Main():
 
         # self.sound_back = self.load_sound('back_test')
 
+        self.projectile_names = ['red', 'green', 'yellow', 'blue']
+        
+
         # Game Files
         file_name = self.cwd + '\\assets\\towers.csv'
         self.tower_stats = np.genfromtxt(file_name, delimiter=';', dtype=("|U10", int, int, float, float, "|U15", "|U28"), skip_header=1)
@@ -650,8 +653,20 @@ class Main():
         return pos_mobs
 
     def fire(self, tower, enemy):
-        self.current_projectiles.append(Projectile(canvas=self.canvas_game, x=int((tower.get_x()+0.5)*game_tile_width), y=int((tower.get_y()+0.5)*game_tile_width), damage=tower.get_damage(), speed=16, target=enemy, image=self.def_proj))
+        num = np.random.randint(0,4)
+        self.current_projectiles.append(Projectile(
+                            canvas=self.canvas_game, 
+                            x=int((tower.get_x()+0.5)*game_tile_width), 
+                            y=int((tower.get_y()+0.5)*game_tile_width), 
+                            damage=tower.get_damage(), 
+                            speed=24, 
+                            target=enemy, 
+                            image='proj_' + self.projectile_names[num])
+                            )
+        self.play_sound('fire')
         tower.fire_reset()
+
+
 
     ## Tile Information Functions
 

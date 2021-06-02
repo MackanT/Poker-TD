@@ -116,12 +116,27 @@ class Projectile:
         self.goal_index = 0
         self.size = 10
         self.age = 20
-        self.image = image
+        self.image_name = image
 
+        self.image = self.load_image()
         self.shape = self.canvas.create_image(self.x, self.y, image=self.image)
 
     def get_target(self):
         return self.target
+    
+    def load_image(self, raw=True):
+        image_file = os.getcwd() + '\\art\\projectile\\' + self.image_name + '.png' 
+        image = Image.open(image_file)
+        dim = image.size[0] - (self.age)*2
+        image = image.resize((64,64), Image.NEAREST)
+        if raw: return ImageTk.PhotoImage(image)
+        else: return image
+
+    def rotate_image(self, angle):
+        img = self.load_image(raw=False)
+        dim = img.size[0] - (self.age)*2
+        self.image = ImageTk.PhotoImage(img.rotate(angle).resize((dim,dim), Image.NEAREST))
+        self.canvas.itemconfig(self.shape, image=self.image)
 
     def remove(self):
         self.canvas.delete(self.shape)
@@ -154,5 +169,7 @@ class Projectile:
 
         self.x += move_x
         self.y += move_y
+
+        self.rotate_image(self.age*15%360)
 
         return False, False
