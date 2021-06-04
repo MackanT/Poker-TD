@@ -157,16 +157,30 @@ class Projectile:
         return image
 
     def rotate_image(self):
-
         if self.homing:
             # Angle between projectile and target in degrees
             angle = np.arctan2(self.target.get_y() - self.y, 
                                self.target.get_x() - self.x)*180/np.pi
-            self.image = ImageTk.PhotoImage(self.image_raw.rotate(angle=-angle))
-        else:
-            self.image = ImageTk.PhotoImage(self.image_raw.rotate(angle=-self.age*15%360))
-        
+            return -angle
+        else: return -self.age*15%360
+
+    def rescale_image(self):
+        return int(np.log((self.rel_size**self.age))) + self.image_raw.size[0]
+
+    def stretch_image(self):
+        size = int(self.image_raw.size[0] + 10*self.age)
+        return size
+
+    def update_image(self, move_x, move_y):
+
+        angle = self.rotate_image()
+        x = self.image_raw.size[0]*self.scale
+        y = self.image_raw.size[1]*self.scale
+
+        self.image = ImageTk.PhotoImage(self.image_raw.resize((x, y), Image.NEAREST).rotate(angle))
         self.canvas.itemconfig(self.shape, image=self.image)
+        self.canvas.move(self.shape, move_x, move_y)
+
 
     def remove(self):
         self.canvas.delete(self.shape)
@@ -178,8 +192,8 @@ class Projectile:
     def move(self):
         
         # Get rid of projectiles older than 3 sec
-        self.age -= 1
-        if self.age <= 0: return True, False
+        self.age += 1
+        if self.age > self.max_age: return True, False
 
         if not self.target: return True, False
         if not self.target.get_alive(): return True, False
@@ -195,8 +209,6 @@ class Projectile:
         move_x = dir_x*self.speed
         move_y = dir_y*self.speed
 
-        self.canvas.move(self.shape, move_x, move_y)
-
         self.x += move_x
         self.y += move_y
         
@@ -204,6 +216,6 @@ class Projectile:
             unit_killed = self.target.do_damage(self.damage)
             return True, unit_killed
         else:
-            self.rotate_image()
+            self.update_image(move_x, move_y)
 
         return False, False
