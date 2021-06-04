@@ -115,9 +115,11 @@ class Main():
 
         # Game Files
         file_name = self.cwd + '\\assets\\towers.csv'
-        self.tower_stats = np.genfromtxt(file_name, delimiter=';', dtype=("|U10", int, int, float, float, "|U15", "|U28"), skip_header=1)
+        self.tower_stats = np.genfromtxt(file_name, delimiter=';', dtype=("|U10", int, int, float, float, "|U15", "|U28", int), skip_header=1)
         file_name = self.cwd + '\\assets\\enemies.csv'
         self.enemy_stats = np.genfromtxt(file_name, delimiter=';', dtype=(int, int, int, float, "|U15", "|U28"), skip_header=1)
+        file_name = self.cwd + '\\assets\\projectiles.csv'
+        self.projectile_stats = np.genfromtxt(file_name, delimiter=';', dtype=(int, "|U15", int, int, bool, int, int), skip_header=1)
         
 
         # Event Binders canvas_game
@@ -378,6 +380,18 @@ class Main():
         """ Returns expected name of single tower """
         return str(self.tower_stats[number][6])+' of '+suite.capitalize()+'s'
 
+    def generate_tower(self, tile, stats):
+        tile.set_tower( 
+                        number=stats[0],
+                        name=stats[6],   
+                        attack_min=stats[1], 
+                        attack_max=stats[2],
+                        range=stats[3], 
+                        speed=stats[4], 
+                        ability=stats[5],
+                        projectile=stats[7]
+                        )
+
     def place_tower(self, event):
         """ Attempts to create tower at mouse clicked tile """
 
@@ -393,16 +407,7 @@ class Main():
                     return
 
                 stats = self.find_tower(self.gen_card())
-
-                tile.set_tower( 
-                               number=stats[0],
-                               name=stats[6],   
-                               attack_min=stats[1], 
-                               attack_max=stats[2],
-                               range=stats[3], 
-                               speed=stats[4], 
-                               ability=stats[5]
-                                )
+                self.generate_tower(tile, stats)
 
                 self.tile_counter += 1
                 self.current_hand.append(tile)
@@ -430,16 +435,7 @@ class Main():
             tile = self.current_hand[i]
 
             stats = self.find_tower(self.gen_card())
-
-            tile.set_tower( 
-                number=stats[0],
-                name=stats[6],   
-                attack_min=stats[1], 
-                attack_max=stats[2],
-                range=stats[3], 
-                speed=stats[4], 
-                ability=stats[5]
-            )
+            self.generate_tower(tile, stats)
             
             # self.play_sound('place_tower') # Tower redraw sound....
             self.update_tile_information(0, 0, tile=tile)
@@ -471,15 +467,7 @@ class Main():
         
         stats = self.find_tower(card_type)
         
-        self.current_board[x][y].set_tower(                                         
-                                           number=stats[0],
-                                           name=stats[6],   
-                                           attack_min=stats[1], 
-                                           attack_max=stats[2],
-                                           range=stats[3], 
-                                           speed=stats[4], 
-                                           ability=stats[5]
-                                           )
+        self.generate_tower(self.current_board[x][y], stats)
 
         self.tile_counter = -1
         self.odds_current = 0
@@ -655,20 +643,24 @@ class Main():
             pos_mobs[i, 1] = e.get_y()
         
         return pos_mobs
-
+ 
     def fire(self, tower, enemy):
-        # num = np.random.randint(0,4)
-        num = 4
+
+        proj_id = tower.get_projectile()
+        stats = self.projectile_stats[proj_id]
         self.current_projectiles.append(Projectile(
                             canvas=self.canvas_game, 
                             x=int((tower.get_x()+0.5)*game_tile_width), 
                             y=int((tower.get_y()+0.5)*game_tile_width), 
                             damage=tower.get_damage(), 
-                            speed=24, 
+                            speed=stats[3],
+                            age=stats[2], 
                             target=enemy, 
-                            image='proj_' + self.projectile_names[num],
-                            homing=True)
-                            )
+                            image='proj_' + stats[1],
+                            homing=stats[4],
+                            size=stats[5],
+                            scale=stats[6]
+                            ))
         self.play_sound('fire')
         tower.fire_reset()
 
