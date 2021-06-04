@@ -920,9 +920,15 @@ class Main():
             if type and state == 1: 
                 if i in [0, 2, 6]: number = self.current_hand[0].get_suite_number()
                 elif i == 1: number = cards[0]
-                elif i in [3, 5]: number = max(cards) # Full house doesnt print 3 type
+                elif i in [3, 7]: number = max(cards) 
                 elif i in [4, 8, 10]: number = dupes[0]
-                elif i in [5, 9]: number = max(dupes) # Doesnt set ace as high... [9]
+                elif i == 5: 
+                    for k, j in enumerate(seen):
+                        if seen[j] == 3: number = cards[k]
+                        break
+                elif i == 9: 
+                    if 0 in dupes: number = 0
+                    else: number = max(dupes)
                 else: 
                     number = self.__best_card_single(cards)
                     return str(self.current_hand[number].get_suite_number()) + '_' + str(i) + '_' + str(cards[number])
