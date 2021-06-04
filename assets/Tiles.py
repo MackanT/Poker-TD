@@ -79,7 +79,7 @@ class Tile:
         self.img_tile = self.load_image(self.image_name)
         self.canvas.itemconfig(self.tile, image=self.img_tile)
 
-    def set_tower(self, name=None, attack_min=None, attack_max=None, range=None, speed=None, ability=None, number=None):
+    def set_tower(self, name=None, attack_min=None, attack_max=None, range=None, speed=None, ability=None, number=None, projectile=None):
         self.name = name # Card name, "Ace of Spades"
         self.number = number # Ace = 0, King = 12
 
@@ -93,6 +93,7 @@ class Tile:
         self.speed_current = speed - 1
         self.ability = ability
         self.buildable = False
+        self.projectile = projectile
 
     def remove_tower(self, update=True):
         self.image_name = 'tile_' + self.tile_color
@@ -131,6 +132,9 @@ class Tile:
 
     def get_path(self):
         return self.path
+
+    def get_projectile(self):
+        return self.projectile
 
     def get_x(self):
         return self.x

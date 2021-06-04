@@ -113,14 +113,12 @@ class Main():
 
         # self.sound_back = self.load_sound('back_test')
 
-        self.projectile_names = ['red', 'green', 'yellow', 'blue', 'arrow']
-        
-
         # Game Files
         file_name = self.cwd + '\\assets\\towers.csv'
         self.tower_stats = np.genfromtxt(file_name, delimiter=';', dtype=("|U10", int, int, float, float, "|U15", "|U28"), skip_header=1)
         file_name = self.cwd + '\\assets\\enemies.csv'
         self.enemy_stats = np.genfromtxt(file_name, delimiter=';', dtype=(int, int, int, float, "|U15", "|U28"), skip_header=1)
+        
 
         # Event Binders canvas_game
         self.canvas_game.bind('<Motion>', self.moved_mouse)

@@ -3,9 +3,6 @@ from PIL import Image, ImageTk
 import numpy as np
 import os
 
-from numpy import random
-from numpy.core.fromnumeric import ptp
-
 class Enemy:
     """ canvas, x_pos, y_pos, enemy hp, enemy speed, enemy movement goal
     """
@@ -129,7 +126,7 @@ class Projectile:
     """ canvas, x_pos, y_pos, amount of damage, speed of projectile [px], enemy target
     """
 
-    def __init__(self, canvas=None, x=None, y=None, damage=None, speed=None, target=None, image=None, homing=False):
+    def __init__(self, canvas=None, x=None, y=None, damage=None, speed=None, target=None, image=None, homing=False, age=20, size=10, scale=1):
         self.canvas = canvas
         self.x = x
         self.y = y
@@ -137,15 +134,17 @@ class Projectile:
         self.speed = speed
         self.target = target
         self.goal_index = 0
-        self.size = 10 #Projectile boundary box radius
-        self.age = 20 #Projectile life length num. ticks
+        self.size = size #Projectile boundary box radius
+        self.max_age = age #Projectile life length num. ticks
+        self.age = 1
         self.image_name = image
         self.homing = homing
+        self.scale = scale
 
         self.image_raw = self.load_image()
         self.image = ImageTk.PhotoImage(self.image_raw)
         self.shape = self.canvas.create_image(self.x, self.y, image=self.image)
-        self.rotate_image()
+        self.update_image(0,0)
 
     def get_target(self):
         return self.target
