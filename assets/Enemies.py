@@ -126,7 +126,7 @@ class Projectile:
     """ canvas, x_pos, y_pos, amount of damage, speed of projectile [px], enemy target
     """
 
-    def __init__(self, canvas=None, x=None, y=None, damage=None, speed=None, target=None, image=None, homing=False, age=20, size=10, scale=1):
+    def __init__(self, canvas=None, x=0, y=0, damage=1, speed=24, target=None, image='proj_arrow', homing=True, age=20, size=10, scale=1, resize=False):
         self.canvas = canvas
         self.x = x
         self.y = y
@@ -140,6 +140,7 @@ class Projectile:
         self.image_name = image
         self.homing = homing
         self.scale = scale
+        self.resize = resize
 
         self.image_raw = self.load_image()
         self.image = ImageTk.PhotoImage(self.image_raw)
@@ -165,17 +166,17 @@ class Projectile:
         else: return -self.age*15%360
 
     def rescale_image(self):
-        return int(np.log((self.rel_size**self.age))) + self.image_raw.size[0]
-
-    def stretch_image(self):
-        size = int(self.image_raw.size[0] + 10*self.age)
-        return size
+        return int(1.5*self.image_raw.size[0] * np.log(self.age+1))
 
     def update_image(self, move_x, move_y):
 
         angle = self.rotate_image()
-        x = self.image_raw.size[0]*self.scale
-        y = self.image_raw.size[1]*self.scale
+        if self.resize:
+            x = self.rescale_image()
+            y = x
+        else:
+            x = self.image_raw.size[0]*self.scale
+            y = self.image_raw.size[1]*self.scale
 
         self.image = ImageTk.PhotoImage(self.image_raw.resize((x, y), Image.NEAREST).rotate(angle))
         self.canvas.itemconfig(self.shape, image=self.image)

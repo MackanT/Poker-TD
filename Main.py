@@ -79,7 +79,7 @@ class Main():
         self.odds_base = 10
         self.odds_current = 0
 
-        self.draws_base = 1
+        self.draws_base = 100
         self.draws_current = self.draws_base
 
         self.turn_time_base = 30
@@ -119,7 +119,7 @@ class Main():
         file_name = self.cwd + '\\assets\\enemies.csv'
         self.enemy_stats = np.genfromtxt(file_name, delimiter=';', dtype=(int, int, int, float, "|U15", "|U28"), skip_header=1)
         file_name = self.cwd + '\\assets\\projectiles.csv'
-        self.projectile_stats = np.genfromtxt(file_name, delimiter=';', dtype=(int, "|U15", int, int, bool, int, int), skip_header=1)
+        self.projectile_stats = np.genfromtxt(file_name, delimiter=';', dtype=(int, "|U15", int, int, bool, int, int, bool), skip_header=1)
         
 
         # Event Binders canvas_game
@@ -554,7 +554,9 @@ class Main():
         
         if self.mobs_current < self.mobs_base:
 
-            slime_img = self.load_image('slime', folder='enemies')
+            mob_name = 'l' + str(self.current_wave+1)
+
+            slime_img = self.load_image(mob_name, folder='enemies', dim=32)
             goal = [self.tile_path_x[0], self.tile_path_y[0]]
             self.current_enemies[self.mobs_current].reset_mob(
                     x=self.tile_path_x[0]-game_tile_width, 
@@ -659,7 +661,8 @@ class Main():
                             image='proj_' + stats[1],
                             homing=stats[4],
                             size=stats[5],
-                            scale=stats[6]
+                            scale=stats[6],
+                            resize=stats[7]
                             ))
         self.play_sound('fire')
         tower.fire_reset()

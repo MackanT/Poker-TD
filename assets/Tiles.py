@@ -29,8 +29,6 @@ class Tile:
 
     def load_image(self, name, tile=False):
 
-        print(name)
-
         if tile:
             bg = os.getcwd() + '\\art\\tower\\tile\\' + name + '.png' 
             bg = Image.open(bg)
@@ -79,7 +77,7 @@ class Tile:
 
     def set_path(self):
         self.image_name = 'tile_grey'
-        self.name = 'Felt Path'
+        self.name = 'Path'
         self.attack_min = ''
         self.range = ''
         self.speed = ''
@@ -110,7 +108,7 @@ class Tile:
         self.img_tower = self.load_image('blank', tile=True)
         if update: 
             self.canvas.itemconfig(self.tower, image=self.img_tower)
-        self.name = 'Felt Carpet'
+        self.name = 'Grass'
         self.attack_min = 0
         self.range = 0
         self.speed = 0
